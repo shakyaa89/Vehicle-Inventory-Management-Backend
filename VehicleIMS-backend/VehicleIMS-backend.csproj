@@ -25,4 +25,8 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\VehicleIMS-backend.Infrastructure\VehicleIMS-backend.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
