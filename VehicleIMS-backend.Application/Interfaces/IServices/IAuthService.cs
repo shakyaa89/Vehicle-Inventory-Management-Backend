@@ -10,6 +10,8 @@ namespace VehicleIMS_backend.Application.Interfaces.IServices
     {
         Task<CustomerStats> RegisterCustomer(RegisterDTO registerDTO);
 
+        Task<User> RegisterStaff(RegisterDTO registerDTO);
+
         Task<object> Login(LoginDTO loginDTO);
     }
 }

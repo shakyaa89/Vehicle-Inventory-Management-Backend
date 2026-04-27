@@ -52,6 +52,31 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return customer;
         }
 
+        public async Task<User> RegisterStaff(RegisterDTO registerDTO)
+        {
+            var user = new User
+            {
+                UserName = registerDTO.UserName,
+                Email = registerDTO.Email,
+                PhoneNumber = registerDTO.PhoneNumber,
+                FullName = registerDTO.FullName,
+            };
+
+            var result = await _userManager.CreateAsync(user, registerDTO.Password);
+
+            if (!result.Succeeded)
+                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            if (!await _roleManager.RoleExistsAsync("Staff"))
+            {
+                await _roleManager.CreateAsync(new Roles { Name = "Staff" });
+            }
+
+            await _userManager.AddToRoleAsync(user, "Staff");
+
+            return user;
+        }
+
         public async Task<object> Login(LoginDTO loginDTO)
         {
             var user = await _userManager.FindByNameAsync(loginDTO.UserName) ?? throw new UnauthorizedAccessException("Invalid username or password");
@@ -61,12 +86,23 @@ namespace VehicleIMS_backend.Infrastructure.Services
             if (!result.Succeeded)
                 throw new UnauthorizedAccessException("Invalid username or password");
 
-            var token = _jwtTokenService.GenerateUserToken(user);
 
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault();
+
+            var token = _jwtTokenService.GenerateUserToken(user);
+            
             return new
             {
                 jwtToken = token,
-                user
+                user = new
+                {
+                    id = user.Id,
+                    userName = user.UserName,
+                    email = user.Email,
+                    fullName = user.FullName,
+                    role
+                }
             };
         }
     }

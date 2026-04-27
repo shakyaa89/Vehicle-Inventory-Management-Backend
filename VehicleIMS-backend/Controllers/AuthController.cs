@@ -35,6 +35,14 @@ namespace VehicleIMS_backend.Controllers
             });
         }
 
+        [HttpPost("register/staff")]
+        public async Task<IActionResult> RegisterStaff(RegisterDTO registerDTO)
+        {
+            var staff = await _authService.RegisterStaff(registerDTO);
+
+            return Ok(staff);
+        }
+
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> CheckAuth()
