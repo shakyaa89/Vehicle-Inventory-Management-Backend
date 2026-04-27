@@ -7,5 +7,6 @@ namespace VehicleIMS_backend.Domain.Models
 {
     public class User: IdentityUser<long>
     {
+        public string FullName { get; set; } = string.Empty;
     }
 }

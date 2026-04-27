@@ -10,14 +10,15 @@ using VehicleIMS_backend.Domain.Models;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
-    public class AuthService(UserManager<User> userManager, RoleManager<Roles> roleManager, IAuthRepository authRepository, SignInManager<User> signInManager): IAuthService
+    public class AuthService(UserManager<User> userManager, RoleManager<Roles> roleManager, IAuthRepository authRepository, SignInManager<User> signInManager, IJwtTokenService jwtTokenService) : IAuthService
     {
         private readonly UserManager<User> _userManager = userManager;
         private readonly RoleManager<Roles> _roleManager = roleManager;
         private readonly SignInManager<User> _signInManager = signInManager;
         private readonly IAuthRepository _authRepository = authRepository;
+        private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
 
-        public async Task<Customer> RegisterCustomer(RegisterDTO registerDTO)
+        public async Task<CustomerStats> RegisterCustomer(RegisterDTO registerDTO)
         {
             var user = new User
             {
@@ -40,7 +41,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             await _userManager.AddToRoleAsync(user, "Customer");
 
             // Create customer in DB
-            var customer = new Customer
+            var customer = new CustomerStats
             {
                 UserId = user.Id,
                 TotalSpent = 0,
@@ -51,7 +52,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return customer;
         }
 
-        public async Task<User> Login(LoginDTO loginDTO)
+        public async Task<object> Login(LoginDTO loginDTO)
         {
             var user = await _userManager.FindByNameAsync(loginDTO.UserName) ?? throw new UnauthorizedAccessException("Invalid username or password");
 
@@ -60,7 +61,13 @@ namespace VehicleIMS_backend.Infrastructure.Services
             if (!result.Succeeded)
                 throw new UnauthorizedAccessException("Invalid username or password");
 
-            return user;
+            var token = _jwtTokenService.GenerateUserToken(user);
+
+            return new
+            {
+                jwtToken = token,
+                user
+            };
         }
     }
 }

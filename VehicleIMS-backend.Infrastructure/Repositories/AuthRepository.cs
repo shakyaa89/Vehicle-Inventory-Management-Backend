@@ -11,9 +11,9 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
     {
         private readonly AppDbContext _context = context;
 
-        public async Task CreateCustomerAsync(Customer customer)
+        public async Task CreateCustomerAsync(CustomerStats customer)
         {
-            await _context.Customers.AddAsync(customer);
+            await _context.CustomerStats.AddAsync(customer);
             await _context.SaveChangesAsync();
         }
     }
