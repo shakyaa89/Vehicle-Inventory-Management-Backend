@@ -6,6 +6,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IRepositories
     {
         Task<List<Vehicle>> GetAllAsync();
         Task<Vehicle?> GetByIdAsync(int id);
+        Task<List<Vehicle>> GetByCustomerIdAsync(long customerId);
         Task<Vehicle> AddAsync(Vehicle vehicle);
         Task DeleteAsync(Vehicle vehicle);
         Task<bool> CustomerExistsAsync(long customerId);

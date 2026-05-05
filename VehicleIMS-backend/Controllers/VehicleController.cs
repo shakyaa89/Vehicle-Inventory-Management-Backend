@@ -17,6 +17,13 @@ namespace VehicleIMS_backend.Controllers
             return Ok(vehicles);
         }
 
+        [HttpGet("customer/{customerId:long}")]
+        public async Task<IActionResult> GetVehiclesByCustomerId(long customerId)
+        {
+            var vehicles = await _vehicleService.GetByCustomerIdAsync(customerId);
+            return Ok(vehicles);
+        }
+
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetVehicleById(int id)
         {

@@ -67,5 +67,13 @@ namespace VehicleIMS_backend.Controllers
                 role
             });
         }
+
+        [Authorize]
+        [HttpGet("customers")]
+        public async Task<IActionResult> GetCustomers([FromQuery] string? query)
+        {
+            var customers = await _authService.GetCustomersAsync(query);
+            return Ok(customers);
+        }
     }
 }

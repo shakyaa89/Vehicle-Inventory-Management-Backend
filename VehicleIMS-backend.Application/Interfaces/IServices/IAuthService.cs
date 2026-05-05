@@ -13,5 +13,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IServices
         Task<User> RegisterStaff(RegisterDTO registerDTO);
 
         Task<object> Login(LoginDTO loginDTO);
+
+        Task<IEnumerable<CustomerStatsDTO>> GetCustomersAsync(string? query);
     }
 }

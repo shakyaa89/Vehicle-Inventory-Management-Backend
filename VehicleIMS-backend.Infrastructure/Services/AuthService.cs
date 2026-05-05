@@ -105,5 +105,23 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 }
             };
         }
+
+        public async Task<IEnumerable<CustomerStatsDTO>> GetCustomersAsync(string? query)
+        {
+            var customers = await _authRepository.GetCustomersWithUsersAsync(query);
+
+            return customers
+                .Select(customer => new CustomerStatsDTO
+                {
+                    Id = customer.User?.Id ?? 0,
+                    UserName = customer.User?.UserName ?? string.Empty,
+                    FullName = customer.User?.FullName ?? string.Empty,
+                    Email = customer.User?.Email ?? string.Empty,
+                    PhoneNumber = customer.User?.PhoneNumber ?? string.Empty
+                })
+                .Where(customer => customer.Id != 0)
+                .OrderBy(customer => customer.FullName)
+                .ToList();
+        }
     }
 }

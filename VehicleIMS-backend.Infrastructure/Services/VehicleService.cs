@@ -19,6 +19,11 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return await _vehicleRepository.GetByIdAsync(id);
         }
 
+        public async Task<IEnumerable<Vehicle>> GetByCustomerIdAsync(long customerId)
+        {
+            return await _vehicleRepository.GetByCustomerIdAsync(customerId);
+        }
+
         public async Task<Vehicle> AddAsync(VehicleDTO vehicleDTO)
         {
             var customerExists = await _vehicleRepository.CustomerExistsAsync(vehicleDTO.CustomerId);

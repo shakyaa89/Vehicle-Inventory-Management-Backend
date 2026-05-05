@@ -8,5 +8,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IRepositories
     public interface IAuthRepository
     {
         Task CreateCustomerAsync(CustomerStats customer);
+
+        Task<List<CustomerStats>> GetCustomersWithUsersAsync(string? query);
     }
 }
