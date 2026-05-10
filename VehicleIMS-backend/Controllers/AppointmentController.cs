@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VehicleIMS_backend.Application.DTO;
 using VehicleIMS_backend.Application.Interfaces.IServices;
@@ -47,6 +48,28 @@ namespace VehicleIMS_backend.Controllers
         public async Task<IActionResult> UpdateAppointment(int id, AppointmentDTO appointmentData)
         {
             var appointment = await _appointmentService.UpdateAsync(id, appointmentData);
+
+            if (appointment is null)
+                return NotFound(new { message = "Appointment not found" });
+
+            return Ok(appointment);
+        }
+
+        [HttpPut("{id:int}/complete")]
+        public async Task<IActionResult> CompleteAppointment(int id)
+        {
+            var appointment = await _appointmentService.CompleteAsync(id);
+
+            if (appointment is null)
+                return NotFound(new { message = "Appointment not found" });
+
+            return Ok(appointment);
+        }
+
+        [HttpPut("{id:int}/cancel")]
+        public async Task<IActionResult> CancelAppointment(int id)
+        {
+            var appointment = await _appointmentService.CancelAsync(id);
 
             if (appointment is null)
                 return NotFound(new { message = "Appointment not found" });

@@ -16,12 +16,6 @@ namespace VehicleIMS_backend.Domain.Models
         public User? Customer { get; set; }
 
         [Required]
-        public long StaffId { get; set; }
-
-        [ForeignKey(nameof(StaffId))]
-        public User? Staff { get; set; }
-
-        [Required]
         public DateTime ScheduledAt { get; set; }
 
         [Required]

@@ -11,5 +11,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IServices
         Task<Appointment> AddAppointmentAsync(AppointmentDTO appointmentData);
         Task<Appointment?> UpdateAsync(int id, AppointmentDTO appointmentData);
         Task<bool> DeleteAsync(int id);
+        Task<Appointment?> CompleteAsync(int id);
+        Task<Appointment?> CancelAsync(int id);
     }
 }

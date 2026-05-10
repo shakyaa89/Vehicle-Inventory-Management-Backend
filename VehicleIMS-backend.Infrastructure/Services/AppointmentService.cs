@@ -67,6 +67,28 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return true;
         }
 
+        public async Task<Appointment?> CompleteAsync(int id)
+        {
+            return await UpdateStatusAsync(id, "Completed");
+        }
+
+        public async Task<Appointment?> CancelAsync(int id)
+        {
+            return await UpdateStatusAsync(id, "Cancelled");
+        }
+
+        private async Task<Appointment?> UpdateStatusAsync(int id, string status)
+        {
+            var existingAppointment = await _appointmentRepository.GetByIdAsync(id);
+
+            if (existingAppointment is null)
+                return null;
+
+            existingAppointment.Status = status;
+
+            return await _appointmentRepository.UpdateAppointmentAsync(existingAppointment);
+        }
+
         private async Task ValidateReferencesAsync(AppointmentDTO appointmentData)
         {
             var customerExists = await _appointmentRepository.CustomerExistsAsync(appointmentData.CustomerId);
