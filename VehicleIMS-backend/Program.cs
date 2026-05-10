@@ -35,6 +35,8 @@ builder.Services.AddScoped<IPartService, PartService>();
 builder.Services.AddScoped<IPartRepository, PartRepository>();
 builder.Services.AddScoped<IPurchaseInvoiceService, PurchaseInvoiceService>();
 builder.Services.AddScoped<IPurchaseInvoiceRepository, PurchaseInvoiceRepository>();
+builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
+builder.Services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 builder.Services.Configure<JwtOptions>(
