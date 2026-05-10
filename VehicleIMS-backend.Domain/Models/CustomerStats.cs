@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace VehicleIMS_backend.Domain.Models
@@ -13,6 +14,7 @@ namespace VehicleIMS_backend.Domain.Models
         [Required]
         public long UserId { get; set; }
 
+        [ForeignKey(nameof(UserId))]
         public User? User { get; set; }
 
         public int TotalSpent { get; set; } = 0;
