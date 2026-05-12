@@ -33,6 +33,8 @@ builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
 builder.Services.AddScoped<IPartService, PartService>();
 builder.Services.AddScoped<IPartRepository, PartRepository>();
+builder.Services.AddScoped<IPartRequestService, PartRequestService>();
+builder.Services.AddScoped<IPartRequestRepository, PartRequestRepository>();
 builder.Services.AddScoped<IPurchaseInvoiceService, PurchaseInvoiceService>();
 builder.Services.AddScoped<IPurchaseInvoiceRepository, PurchaseInvoiceRepository>();
 builder.Services.AddScoped<ISalesInvoiceService, SalesInvoiceService>();
