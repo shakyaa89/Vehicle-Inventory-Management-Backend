@@ -1,13 +1,18 @@
+using System.Globalization;
+using System.Net;
+using System.Text;
 using VehicleIMS_backend.Application.DTO;
+using VehicleIMS_backend.Application.Exceptions;
 using VehicleIMS_backend.Application.Interfaces.IRepositories;
 using VehicleIMS_backend.Application.Interfaces.IServices;
 using VehicleIMS_backend.Domain.Models;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
-    public class SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository) : ISalesInvoiceService
+    public class SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository, IEmailService emailService) : ISalesInvoiceService
     {
         private readonly ISalesInvoiceRepository _salesInvoiceRepository = salesInvoiceRepository;
+        private readonly IEmailService _emailService = emailService;
 
         public async Task<SalesInvoiceDTO?> CreateAsync(SalesInvoiceDTO invoiceData, long staffId)
         {
@@ -53,6 +58,10 @@ namespace VehicleIMS_backend.Infrastructure.Services
                     SubTotal = subTotal,
                     CreatedAt = now
                 });
+            }
+
+            if(totalAmount >= 5000){
+                totalAmount = totalAmount - (totalAmount * 0.1m);
             }
 
             var invoice = new SalesInvoice
@@ -105,6 +114,71 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
             var items = await _salesInvoiceRepository.GetItemsByInvoiceIdAsync(invoice.Id);
 
+            return MapInvoice(invoice, items);
+        }
+
+        public async Task<List<SalesInvoiceDTO>> GetAllAsync()
+        {
+            var invoices = await _salesInvoiceRepository.GetAllAsync();
+            if (invoices.Count == 0)
+                return new List<SalesInvoiceDTO>();
+
+            var results = new List<SalesInvoiceDTO>(invoices.Count);
+
+            foreach (var invoice in invoices)
+            {
+                var items = await _salesInvoiceRepository.GetItemsByInvoiceIdAsync(invoice.Id);
+                results.Add(MapInvoice(invoice, items));
+            }
+
+            return results;
+        }
+
+        public async Task<List<SalesInvoiceDTO>> GetByCustomerIdAsync(long customerId)
+        {
+            var invoices = await _salesInvoiceRepository.GetByCustomerIdAsync(customerId);
+            if (invoices.Count == 0)
+                return new List<SalesInvoiceDTO>();
+
+            var results = new List<SalesInvoiceDTO>(invoices.Count);
+
+            foreach (var invoice in invoices)
+            {
+                var items = await _salesInvoiceRepository.GetItemsByInvoiceIdAsync(invoice.Id);
+                results.Add(MapInvoice(invoice, items));
+            }
+
+            return results;
+        }
+
+        public async Task SendInvoiceEmailAsync(int invoiceId, long staffId)
+        {
+            var invoice = await _salesInvoiceRepository.GetByIdAsync(invoiceId) ?? throw new NotFoundException("Invoice not found");
+
+            var customer = await _salesInvoiceRepository.GetUserByIdAsync(invoice.CustomerId) ?? throw new NotFoundException("Customer not found");
+
+            if (string.IsNullOrWhiteSpace(customer.Email)) throw new Exception("Customer email is missing");
+
+            var items = await _salesInvoiceRepository.GetItemsByInvoiceIdAsync(invoice.Id);
+
+            if (items.Count == 0) throw new Exception("Invoice has no items");
+
+            var partIds = items.Select(x => x.PartId).Distinct().ToList();
+
+            var parts = partIds.Count == 0 ? new List<Part>() : await _salesInvoiceRepository.GetPartsByIdsAsync(partIds);
+
+            var partsById = parts.ToDictionary(x => x.Id);
+
+            var staff = await _salesInvoiceRepository.GetUserByIdAsync(staffId);
+
+            var subject = $"Sales Invoice #{invoice.Id}";
+            var body = BuildInvoiceEmailBody(invoice, items, partsById, customer, staff);
+
+            await _emailService.SendEmailAsync(customer.Email, subject, body);
+        }
+
+        private static SalesInvoiceDTO MapInvoice(SalesInvoice invoice, List<SalesInvoiceItem> items)
+        {
             return new SalesInvoiceDTO
             {
                 Id = invoice.Id,
@@ -126,6 +200,94 @@ namespace VehicleIMS_backend.Infrastructure.Services
                     CreatedAt = item.CreatedAt
                 }).ToList()
             };
+        }
+
+        private static string BuildInvoiceEmailBody(
+            SalesInvoice invoice,
+            IReadOnlyList<SalesInvoiceItem> items,
+            IReadOnlyDictionary<int, Part> partsById,
+            User customer,
+            User? staff)
+        {
+            string customerName = WebUtility.HtmlEncode(!string.IsNullOrWhiteSpace(customer.FullName) ? customer.FullName : !string.IsNullOrWhiteSpace(customer.UserName) ? customer.UserName : customer.Email ?? "Customer");
+
+            string staffName = staff is null ? string.Empty : WebUtility.HtmlEncode(!string.IsNullOrWhiteSpace(staff.FullName) ? staff.FullName : !string.IsNullOrWhiteSpace(staff.UserName) ? staff.UserName : staff.Email ?? "");
+
+            var sb = new StringBuilder();
+
+            sb.Append($"""
+                <!DOCTYPE html>
+                <html>
+                <body>
+
+                <h2>Sales Invoice</h2>
+
+                <p>
+                <strong>Invoice #:</strong> {invoice.Id}<br/>
+                <strong>Date:</strong> {invoice.CreatedAt:yyyy-MM-dd HH:mm} UTC<br/>
+                <strong>Customer:</strong> {customerName}
+                </p>
+
+                <table style="border-collapse:collapse;width:100%">
+                <thead>
+                <tr>
+                <th style="text-align:left;border-bottom:1px solid #ccc;padding:6px 4px;">Part</th>
+                <th style="text-align:right;border-bottom:1px solid #ccc;padding:6px 4px;">Qty</th>
+                <th style="text-align:right;border-bottom:1px solid #ccc;padding:6px 4px;">Unit Price</th>
+                <th style="text-align:right;border-bottom:1px solid #ccc;padding:6px 4px;">Subtotal</th>
+                </tr>
+                </thead>
+                <tbody>
+                """);
+
+                    foreach (var item in items)
+                    {
+                        var partLabel = partsById.TryGetValue(item.PartId, out var part)
+                            ? $"{part.Name} ({part.Sku})"
+                            : $"Part #{item.PartId}";
+
+                        sb.Append($"""
+                <tr>
+                <td style="padding:4px;">{WebUtility.HtmlEncode(partLabel)}</td>
+                <td style="padding:4px;text-align:right;">{item.PartQuantity}</td>
+                <td style="padding:4px;text-align:right;">{item.UnitPrice:0.00}</td>
+                <td style="padding:4px;text-align:right;">{item.SubTotal:0.00}</td>
+                </tr>
+                """);
+                    }
+
+                    sb.Append($"""
+                </tbody>
+                </table>
+
+                <p>
+                <strong>Total:</strong> {invoice.TotalAmount:0.00}
+                </p>
+                """);
+
+                    if (invoice.IsCredit)
+                    {
+                        sb.Append($"""
+                <p>
+                <strong>Due Amount:</strong> {invoice.DueAmount:0.00}<br/>
+                <strong>Due Date:</strong> {invoice.CreditDueDate?.ToString("yyyy-MM-dd") ?? "N/A"}
+                </p>
+                """);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(staffName))
+                    {
+                        sb.Append($"""
+                <p><strong>Prepared by:</strong> {staffName}</p>
+                """);
+                    }
+
+                    sb.Append("""
+                </body>
+                </html>
+                """);
+
+            return sb.ToString();
         }
     }
 }

@@ -1,4 +1,5 @@
 using VehicleIMS_backend.Application.DTO;
+using VehicleIMS_backend.Application.Exceptions;
 using VehicleIMS_backend.Application.Interfaces.IRepositories;
 using VehicleIMS_backend.Application.Interfaces.IServices;
 using VehicleIMS_backend.Domain.Models;
@@ -21,7 +22,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task<Appointment?> GetByIdAsync(int id)
         {
-            return await _appointmentRepository.GetByIdAsync(id);
+            return await _appointmentRepository.GetByIdAsync(id) ?? throw new NotFoundException("Appointment not found!");
         }
 
         public async Task<Appointment> AddAppointmentAsync(AppointmentDTO appointmentData)

@@ -6,5 +6,8 @@ namespace VehicleIMS_backend.Application.Interfaces.IServices
     {
         Task<SalesInvoiceDTO?> CreateAsync(SalesInvoiceDTO invoiceData, long staffId);
         Task<SalesInvoiceDTO?> GetByIdAsync(int id);
+        Task<List<SalesInvoiceDTO>> GetAllAsync();
+        Task<List<SalesInvoiceDTO>> GetByCustomerIdAsync(long customerId);
+        Task SendInvoiceEmailAsync(int invoiceId, long staffId);
     }
 }

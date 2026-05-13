@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using VehicleIMS_backend.Application.Exceptions;
 
 
 namespace VehicleIMS_backend.Application.Middlewares
@@ -25,6 +26,16 @@ namespace VehicleIMS_backend.Application.Middlewares
                 {
                     message = ex.Message,
                     statusCode = 401
+                }));
+            }
+            catch(NotFoundException ex)
+            {
+                httpContext.Response.ContentType = "application/json";
+                httpContext.Response.StatusCode = 404;
+                await httpContext.Response.WriteAsync(JsonSerializer.Serialize(new
+                {
+                    message = ex.Message,
+                    statusCode = 404
                 }));
             }
             catch (Exception ex)
