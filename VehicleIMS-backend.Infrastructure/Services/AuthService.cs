@@ -3,23 +3,27 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using VehicleIMS_backend.Application.DTO;
+using VehicleIMS_backend.Application.Exceptions;
 using VehicleIMS_backend.Application.Interfaces.IRepositories;
 using VehicleIMS_backend.Application.Interfaces.IServices;
 using VehicleIMS_backend.Domain.Models;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
-    public class AuthService(UserManager<User> userManager, RoleManager<Roles> roleManager, IAuthRepository authRepository, SignInManager<User> signInManager, IJwtTokenService jwtTokenService) : IAuthService
+    public class AuthService(UserManager<User> userManager, RoleManager<Roles> roleManager, IAuthRepository authRepository, SignInManager<User> signInManager, IJwtTokenService jwtTokenService, ILogger<AuthService> logger) : IAuthService
     {
         private readonly UserManager<User> _userManager = userManager;
         private readonly RoleManager<Roles> _roleManager = roleManager;
         private readonly SignInManager<User> _signInManager = signInManager;
         private readonly IAuthRepository _authRepository = authRepository;
         private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
+        private readonly ILogger<AuthService> _logger = logger;
 
         public async Task<CustomerStats> RegisterCustomer(RegisterDTO registerDTO)
         {
+            _logger.LogInformation("Registering customer {UserName}", registerDTO.UserName);
             var user = new User
             {
                 UserName = registerDTO.UserName,
@@ -31,7 +35,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             var result = await _userManager.CreateAsync(user, registerDTO.Password);
 
             if (!result.Succeeded)
-                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+                throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
 
             if (!await _roleManager.RoleExistsAsync("Customer"))
             {
@@ -49,11 +53,14 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
             await _authRepository.CreateCustomerAsync(customer);
 
+            _logger.LogInformation("Customer registered with user id {UserId}", user.Id);
+
             return customer;
         }
 
         public async Task<User> RegisterStaff(RegisterDTO registerDTO)
         {
+            _logger.LogInformation("Registering staff {UserName}", registerDTO.UserName);
             var user = new User
             {
                 UserName = registerDTO.UserName,
@@ -65,7 +72,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             var result = await _userManager.CreateAsync(user, registerDTO.Password);
 
             if (!result.Succeeded)
-                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+                throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
 
             if (!await _roleManager.RoleExistsAsync("Staff"))
             {
@@ -74,11 +81,14 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
             await _userManager.AddToRoleAsync(user, "Staff");
 
+            _logger.LogInformation("Staff registered with user id {UserId}", user.Id);
+
             return user;
         }
 
         public async Task<object> Login(LoginDTO loginDTO)
         {
+            _logger.LogInformation("User login attempt for {UserName}", loginDTO.UserName);
             var user = await _userManager.FindByNameAsync(loginDTO.UserName) ?? throw new UnauthorizedAccessException("Invalid username or password");
 
             var result = await _signInManager.PasswordSignInAsync(loginDTO.UserName, loginDTO.Password, false, true);
@@ -91,6 +101,8 @@ namespace VehicleIMS_backend.Infrastructure.Services
             var role = roles.FirstOrDefault();
 
             var token = _jwtTokenService.GenerateUserToken(user);
+
+            _logger.LogInformation("User login succeeded for {UserId}", user.Id);
             
             return new
             {
@@ -108,6 +120,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task<IEnumerable<CustomerStatsDTO>> GetCustomersAsync(string? query)
         {
+            _logger.LogInformation("Fetching customers with query {Query}", query ?? string.Empty);
             var customers = await _authRepository.GetCustomersWithUsersAsync(query);
 
             return customers

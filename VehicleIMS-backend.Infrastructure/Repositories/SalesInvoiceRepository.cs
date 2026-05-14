@@ -16,9 +16,7 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
 
         public async Task<List<Part>> GetPartsByIdsAsync(IEnumerable<int> partIds)
         {
-            return await _context.Parts
-                .Where(p => partIds.Contains(p.Id))
-                .ToListAsync();
+            return await _context.Parts.Where(p => partIds.Contains(p.Id)).ToListAsync();
         }
 
         public async Task CreateAsync(SalesInvoice invoice, List<SalesInvoiceItem> items)
@@ -34,41 +32,27 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
 
         public async Task<SalesInvoice?> GetByIdAsync(int id)
         {
-            return await _context.SalesInvoices
-                .AsNoTracking()
-                .FirstOrDefaultAsync(i => i.Id == id);
+            return await _context.SalesInvoices.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
         }
 
         public async Task<List<SalesInvoiceItem>> GetItemsByInvoiceIdAsync(int invoiceId)
         {
-            return await _context.SalesInvoiceItems
-                .AsNoTracking()
-                .Where(i => i.SalesInvoiceId == invoiceId)
-                .ToListAsync();
+            return await _context.SalesInvoiceItems.AsNoTracking().Where(i => i.SalesInvoiceId == invoiceId).ToListAsync();
         }
 
         public async Task<List<SalesInvoice>> GetAllAsync()
         {
-            return await _context.SalesInvoices
-                .AsNoTracking()
-                .OrderByDescending(i => i.CreatedAt)
-                .ToListAsync();
+            return await _context.SalesInvoices.AsNoTracking().OrderByDescending(i => i.CreatedAt).ToListAsync();
         }
 
         public async Task<List<SalesInvoice>> GetByCustomerIdAsync(long customerId)
         {
-            return await _context.SalesInvoices
-                .AsNoTracking()
-                .Where(i => i.CustomerId == customerId)
-                .OrderByDescending(i => i.CreatedAt)
-                .ToListAsync();
+            return await _context.SalesInvoices.AsNoTracking().Where(i => i.CustomerId == customerId).OrderByDescending(i => i.CreatedAt).ToListAsync();
         }
 
         public async Task<User?> GetUserByIdAsync(long userId)
         {
-            return await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(user => user.Id == userId);
+            return await _context.Users.AsNoTracking().FirstOrDefaultAsync(user => user.Id == userId);
         }
     }
 }

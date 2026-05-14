@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using VehicleIMS_backend.Application.DTO;
 using VehicleIMS_backend.Application.Exceptions;
 using VehicleIMS_backend.Application.Interfaces.IRepositories;
@@ -9,25 +10,27 @@ using VehicleIMS_backend.Domain.Models;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
-    public class SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository, IEmailService emailService) : ISalesInvoiceService
+    public class SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository, IEmailService emailService, ILogger<SalesInvoiceService> logger) : ISalesInvoiceService
     {
         private readonly ISalesInvoiceRepository _salesInvoiceRepository = salesInvoiceRepository;
         private readonly IEmailService _emailService = emailService;
+        private readonly ILogger<SalesInvoiceService> _logger = logger;
 
         public async Task<SalesInvoiceDTO?> CreateAsync(SalesInvoiceDTO invoiceData, long staffId)
         {
+            _logger.LogInformation("Creating sales invoice for customer {CustomerId} by staff {StaffId}", invoiceData.CustomerId, staffId);
             if (invoiceData.Items is null || invoiceData.Items.Count == 0)
-                return null;
+                throw new BadRequestException("Invoice items are required.");
 
             var customerExists = await _salesInvoiceRepository.CustomerExistsAsync(invoiceData.CustomerId);
             if (!customerExists)
-                return null;
+                throw new NotFoundException("Customer not found.");
 
             var partIds = invoiceData.Items.Select(i => i.PartId).Distinct().ToList();
             var parts = await _salesInvoiceRepository.GetPartsByIdsAsync(partIds);
 
             if (parts.Count != partIds.Count)
-                return null;
+                throw new NotFoundException("One or more parts not found.");
 
             var partsById = parts.ToDictionary(part => part.Id);
             var now = DateTime.UtcNow;
@@ -37,13 +40,13 @@ namespace VehicleIMS_backend.Infrastructure.Services
             foreach (var item in invoiceData.Items)
             {
                 if (item.PartQuantity <= 0 || item.UnitPrice < 0)
-                    return null;
+                    throw new BadRequestException("Invalid item quantity or unit price.");
 
                 if (!partsById.TryGetValue(item.PartId, out var part))
-                    return null;
+                    throw new NotFoundException("Part not found.");
 
                 if (part.StockQuantity < item.PartQuantity)
-                    return null;
+                    throw new BadRequestException("Insufficient stock for requested part.");
 
                 part.StockQuantity -= item.PartQuantity;
 
@@ -108,9 +111,10 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task<SalesInvoiceDTO?> GetByIdAsync(int id)
         {
+            _logger.LogInformation("Fetching sales invoice {InvoiceId}", id);
             var invoice = await _salesInvoiceRepository.GetByIdAsync(id);
             if (invoice is null)
-                return null;
+                throw new NotFoundException("Invoice not found.");
 
             var items = await _salesInvoiceRepository.GetItemsByInvoiceIdAsync(invoice.Id);
 
@@ -119,6 +123,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task<List<SalesInvoiceDTO>> GetAllAsync()
         {
+            _logger.LogInformation("Fetching all sales invoices");
             var invoices = await _salesInvoiceRepository.GetAllAsync();
             if (invoices.Count == 0)
                 return new List<SalesInvoiceDTO>();
@@ -136,6 +141,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task<List<SalesInvoiceDTO>> GetByCustomerIdAsync(long customerId)
         {
+            _logger.LogInformation("Fetching sales invoices for customer {CustomerId}", customerId);
             var invoices = await _salesInvoiceRepository.GetByCustomerIdAsync(customerId);
             if (invoices.Count == 0)
                 return new List<SalesInvoiceDTO>();
@@ -153,15 +159,16 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task SendInvoiceEmailAsync(int invoiceId, long staffId)
         {
+            _logger.LogInformation("Sending sales invoice email for invoice {InvoiceId}", invoiceId);
             var invoice = await _salesInvoiceRepository.GetByIdAsync(invoiceId) ?? throw new NotFoundException("Invoice not found");
 
             var customer = await _salesInvoiceRepository.GetUserByIdAsync(invoice.CustomerId) ?? throw new NotFoundException("Customer not found");
 
-            if (string.IsNullOrWhiteSpace(customer.Email)) throw new Exception("Customer email is missing");
+            if (string.IsNullOrWhiteSpace(customer.Email)) throw new BadRequestException("Customer email is missing");
 
             var items = await _salesInvoiceRepository.GetItemsByInvoiceIdAsync(invoice.Id);
 
-            if (items.Count == 0) throw new Exception("Invoice has no items");
+            if (items.Count == 0) throw new BadRequestException("Invoice has no items");
 
             var partIds = items.Select(x => x.PartId).Distinct().ToList();
 

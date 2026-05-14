@@ -11,5 +11,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IServices
         Task<PartRequest> AddAsync(PartRequestDTO partRequestData);
         Task<PartRequest?> CompleteAsync(int id);
         Task<PartRequest?> RejectAsync(int id);
+
+        Task DeleteAsync(int id);
     }
 }

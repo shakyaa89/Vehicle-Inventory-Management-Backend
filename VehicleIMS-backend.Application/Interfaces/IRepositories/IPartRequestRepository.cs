@@ -10,5 +10,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IRepositories
         Task<PartRequest> AddAsync(PartRequest partRequest);
         Task<PartRequest> UpdateAsync(PartRequest partRequest);
         Task<bool> CustomerExistsAsync(long customerId);
+        Task DeletePartRequestAsync(PartRequest partRequest);
+
     }
 }

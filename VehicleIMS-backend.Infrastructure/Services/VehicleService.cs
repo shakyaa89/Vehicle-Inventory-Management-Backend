@@ -1,35 +1,43 @@
 using VehicleIMS_backend.Application.DTO;
+using VehicleIMS_backend.Application.Exceptions;
 using VehicleIMS_backend.Application.Interfaces.IRepositories;
 using VehicleIMS_backend.Application.Interfaces.IServices;
 using VehicleIMS_backend.Domain.Models;
+using Microsoft.Extensions.Logging;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
-    public class VehicleService(IVehicleRepository vehicleRepository) : IVehicleService
+    public class VehicleService(IVehicleRepository vehicleRepository, ILogger<VehicleService> logger) : IVehicleService
     {
         private readonly IVehicleRepository _vehicleRepository = vehicleRepository;
+        private readonly ILogger<VehicleService> _logger = logger;
 
         public async Task<IEnumerable<Vehicle>> GetAllAsync()
         {
+            _logger.LogInformation("Fetching all vehicles");
             return await _vehicleRepository.GetAllAsync();
         }
 
         public async Task<Vehicle?> GetByIdAsync(int id)
         {
-            return await _vehicleRepository.GetByIdAsync(id);
+            _logger.LogInformation("Fetching vehicle {VehicleId}", id);
+            return await _vehicleRepository.GetByIdAsync(id) ??
+                throw new NotFoundException("Vehicle not found.");
         }
 
         public async Task<IEnumerable<Vehicle>> GetByCustomerIdAsync(long customerId)
         {
+            _logger.LogInformation("Fetching vehicles for customer {CustomerId}", customerId);
             return await _vehicleRepository.GetByCustomerIdAsync(customerId);
         }
 
         public async Task<Vehicle> AddAsync(VehicleDTO vehicleDTO)
         {
+            _logger.LogInformation("Creating vehicle for customer {CustomerId}", vehicleDTO.CustomerId);
             var customerExists = await _vehicleRepository.CustomerExistsAsync(vehicleDTO.CustomerId);
 
             if (!customerExists)
-                throw new Exception("Customer does not exist.");
+                throw new NotFoundException("Customer does not exist.");
 
             var vehicle = new Vehicle
             {
@@ -45,15 +53,16 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task<Vehicle?> UpdateAsync(int id, VehicleDTO vehicleDTO)
         {
+            _logger.LogInformation("Updating vehicle {VehicleId}", id);
             var existingVehicle = await _vehicleRepository.GetByIdAsync(id);
 
             if (existingVehicle is null)
-                return null;
+                throw new NotFoundException("Vehicle not found.");
 
             var customerExists = await _vehicleRepository.CustomerExistsAsync(vehicleDTO.CustomerId);
 
             if (!customerExists)
-                throw new Exception("Customer does not exist.");
+                throw new NotFoundException("Customer does not exist.");
 
             existingVehicle.CustomerId = vehicleDTO.CustomerId;
             existingVehicle.Make = vehicleDTO.Make;
@@ -68,10 +77,11 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
+            _logger.LogInformation("Deleting vehicle {VehicleId}", id);
             var existingVehicle = await _vehicleRepository.GetByIdAsync(id);
 
             if (existingVehicle is null)
-                return false;
+                throw new NotFoundException("Vehicle not found.");
 
             await _vehicleRepository.DeleteAsync(existingVehicle);
             return true;

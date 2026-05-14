@@ -11,15 +11,12 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
 
         public async Task<List<Vendor>> GetAllAsync()
         {
-            return await _context.Vendors
-                .AsNoTracking()
-                .ToListAsync();
+            return await _context.Vendors.AsNoTracking().ToListAsync();
         }
 
         public async Task<Vendor?> GetByIdAsync(int id)
         {
-            return await _context.Vendors
-                .FirstOrDefaultAsync(v => v.Id == id);
+            return await _context.Vendors.FirstOrDefaultAsync(v => v.Id == id);
         }
 
         public async Task<Vendor> AddAsync(Vendor vendor)

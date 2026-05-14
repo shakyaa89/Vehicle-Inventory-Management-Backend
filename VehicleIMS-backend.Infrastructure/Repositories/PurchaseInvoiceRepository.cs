@@ -16,9 +16,7 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
 
         public async Task<List<Part>> GetPartsByIdsAsync(IEnumerable<int> partIds)
         {
-            return await _context.Parts
-                .Where(p => partIds.Contains(p.Id))
-                .ToListAsync();
+            return await _context.Parts.Where(p => partIds.Contains(p.Id)).ToListAsync();
         }
 
         public async Task CreateAsync(PurchaseInvoice invoice, List<PurchaseInvoiceItem> items)
@@ -34,17 +32,12 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
 
         public async Task<PurchaseInvoice?> GetByIdAsync(int id)
         {
-            return await _context.PurchaseInvoices
-                .AsNoTracking()
-                .FirstOrDefaultAsync(i => i.Id == id);
+            return await _context.PurchaseInvoices.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
         }
 
         public async Task<List<PurchaseInvoiceItem>> GetItemsByInvoiceIdAsync(int invoiceId)
         {
-            return await _context.PurchaseInvoiceItems
-                .AsNoTracking()
-                .Where(i => i.PurchaseInvoiceId == invoiceId)
-                .ToListAsync();
+            return await _context.PurchaseInvoiceItems.AsNoTracking().Where(i => i.PurchaseInvoiceId == invoiceId).ToListAsync();
         }
     }
 }

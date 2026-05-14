@@ -20,10 +20,7 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
 
         public async Task<List<CustomerStats>> GetCustomersWithUsersAsync(string? query)
         {
-            var customersQuery = _context.CustomerStats
-                .Include(c => c.User)
-                .AsNoTracking()
-                .AsQueryable();
+            var customersQuery = _context.CustomerStats.Include(c => c.User).AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(query))
             {

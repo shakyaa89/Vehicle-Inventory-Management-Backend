@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using VehicleIMS_backend.Application.DTO;
 using VehicleIMS_backend.Application.Interfaces.IServices;
@@ -9,14 +10,16 @@ namespace VehicleIMS_backend.Controllers
     [Authorize]
     [Route("api/sales-invoices")]
     [ApiController]
-    public class SalesInvoiceController(ISalesInvoiceService salesInvoiceService) : ControllerBase
+    public class SalesInvoiceController(ISalesInvoiceService salesInvoiceService, ILogger<SalesInvoiceController> logger) : ControllerBase
     {
         private readonly ISalesInvoiceService _salesInvoiceService = salesInvoiceService;
+        private readonly ILogger<SalesInvoiceController> _logger = logger;
 
         [Authorize(Roles = "Staff,Customer")]
         [HttpPost]
         public async Task<IActionResult> CreateInvoice(SalesInvoiceDTO invoiceData)
         {
+            _logger.LogInformation("Creating sales invoice for customer {CustomerId}", invoiceData.CustomerId);
             if (invoiceData.Items is null || invoiceData.Items.Count == 0)
                 return BadRequest(new { message = "At least one item is required." });
 
@@ -47,6 +50,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllInvoices()
         {
+            _logger.LogInformation("Fetching all sales invoices");
             var invoices = await _salesInvoiceService.GetAllAsync();
             return Ok(invoices);
         }
@@ -55,6 +59,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpPost("{id:int}/send-email")]
         public async Task<IActionResult> SendInvoiceEmail(int id)
         {
+            _logger.LogInformation("Sending sales invoice email for invoice {InvoiceId}", id);
             var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdValue) || !long.TryParse(userIdValue, out var userId))
                 return Unauthorized(new { message = "Invalid token payload" });
@@ -68,6 +73,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpGet("customer/{customerId:long}")]
         public async Task<IActionResult> GetInvoicesByCustomer(long customerId)
         {
+            _logger.LogInformation("Fetching sales invoices for customer {CustomerId}", customerId);
             var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var role = User.FindFirstValue(ClaimTypes.Role);
             if (string.IsNullOrEmpty(userIdValue) || !long.TryParse(userIdValue, out var userId))
@@ -85,6 +91,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetInvoiceById(int id)
         {
+            _logger.LogInformation("Fetching sales invoice {InvoiceId}", id);
             var invoice = await _salesInvoiceService.GetByIdAsync(id);
 
             if (invoice is null)

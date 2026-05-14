@@ -1,15 +1,18 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using VehicleIMS_backend.Application.Exceptions;
 using VehicleIMS_backend.Application.Interfaces.IServices;
 using VehicleIMS_backend.Infrastructure.Configurations;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
-    public class EmailService(IOptions<EmailOptions> options) : IEmailService
+    public class EmailService(IOptions<EmailOptions> options, ILogger<EmailService> logger) : IEmailService
     {
         private readonly EmailOptions _options = options.Value;
+        private readonly ILogger<EmailService> _logger = logger;
 
         public async Task<bool> SendEmailAsync(
             string toEmail,
@@ -17,11 +20,17 @@ namespace VehicleIMS_backend.Infrastructure.Services
             string htmlBody)
         {
             if (string.IsNullOrWhiteSpace(_options.Host) ||
-                string.IsNullOrWhiteSpace(_options.FromEmail) ||
-                string.IsNullOrWhiteSpace(toEmail))
+                string.IsNullOrWhiteSpace(_options.FromEmail))
             {
-                return false;
+                throw new Exception("Email configuration is missing.");
             }
+
+            if (string.IsNullOrWhiteSpace(toEmail))
+            {
+                throw new BadRequestException("Recipient email is required.");
+            }
+
+            _logger.LogInformation("Sending email to {ToEmail} with subject {Subject}", toEmail, subject);
 
             var message = new MimeMessage();
 
@@ -56,11 +65,14 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
                 await client.DisconnectAsync(true);
 
+                _logger.LogInformation("Email sent to {ToEmail}", toEmail);
+
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                _logger.LogError(ex, "Failed to send email to {ToEmail}", toEmail);
+                throw new Exception("Failed to send email.");
             }
         }
     }

@@ -11,24 +11,17 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
 
         public async Task<List<PartRequest>> GetAllAsync()
         {
-            return await _context.PartRequests
-                .AsNoTracking()
-                .ToListAsync();
+            return await _context.PartRequests.AsNoTracking().ToListAsync();
         }
 
         public async Task<List<PartRequest>> GetByCustomerIdAsync(long customerId)
         {
-            return await _context.PartRequests
-                .Where(request => request.CustomerId == customerId)
-                .AsNoTracking()
-                .ToListAsync();
+            return await _context.PartRequests.Where(request => request.CustomerId == customerId).AsNoTracking().ToListAsync();
         }
 
         public async Task<PartRequest?> GetByIdAsync(int id)
         {
-            return await _context.PartRequests
-                .AsNoTracking()
-                .FirstOrDefaultAsync(request => request.Id == id);
+            return await _context.PartRequests.AsNoTracking().FirstOrDefaultAsync(request => request.Id == id);
         }
 
         public async Task<PartRequest> AddAsync(PartRequest partRequest)
@@ -43,6 +36,12 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
             _context.PartRequests.Update(partRequest);
             await _context.SaveChangesAsync();
             return partRequest;
+        }
+
+        public async Task DeletePartRequestAsync(PartRequest partRequest)
+        {
+            _context.Remove(partRequest);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> CustomerExistsAsync(long customerId)

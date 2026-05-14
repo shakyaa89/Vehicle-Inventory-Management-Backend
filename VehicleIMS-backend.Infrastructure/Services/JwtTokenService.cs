@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.Extensions.Logging;
 using VehicleIMS_backend.Domain.Models;
 using Microsoft.IdentityModel.Tokens;
 using VehicleIMS_backend.Application.Interfaces.IServices;
@@ -14,11 +15,14 @@ namespace VehicleIMS_backend.Infrastructure.Services
 {
     public class JwtTokenService(
     IOptions<JwtOptions> jwtOptions,
-    UserManager<User> userManager) : IJwtTokenService
+    UserManager<User> userManager,
+    ILogger<JwtTokenService> logger) : IJwtTokenService
     {
         private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+        private readonly ILogger<JwtTokenService> _logger = logger;
         public async Task<string> GenerateUserToken(User user)
         {
+            _logger.LogInformation("Generating JWT token for user {UserId}", user.Id);
             //creating claims list
             //will be used to create the payload later
             var claims = new List<Claim>

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using VehicleIMS_backend.Application.DTO;
 using VehicleIMS_backend.Application.Interfaces.IRepositories;
 using VehicleIMS_backend.Domain.Models;
 using VehicleIMS_backend.Infrastructure.Persistence;
@@ -9,25 +10,52 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
     {
         private readonly AppDbContext _context = context;
 
-        public async Task<List<Appointment>> GetAllAsync()
+        public async Task<List<AppointmentResponseDTO>> GetAllAsync()
         {
-            return await _context.Appointments
-                .AsNoTracking()
-                .ToListAsync();
+            return await _context.Appointments.Include(a => a.Customer).Include(a => a.Vehicle).AsNoTracking().Select(a => new AppointmentResponseDTO
+                {
+                    Id = a.Id,
+                    CustomerId = a.CustomerId,
+                    CustomerName = a.Customer!.FullName,
+                    ScheduledAt = a.ScheduledAt,
+                    Status = a.Status,
+                    VehicleId = a.VehicleId,
+                    VehicleMake = a.Vehicle!.Year + " " + a.Vehicle!.Make + " " + a.Vehicle!.Model
+                }).ToListAsync();
         }
 
-        public async Task<List<Appointment>> GetByCustomerIdAsync(long customerId)
+        public async Task<List<AppointmentResponseDTO>> GetByCustomerIdAsync(long customerId)
         {
-            return await _context.Appointments
-                .Where(a => a.CustomerId == customerId)
-                .ToListAsync();
+            return await _context.Appointments.Include(a => a.Customer).Include(a => a.Vehicle).Where(a => a.CustomerId == customerId).Select(a => new AppointmentResponseDTO
+                {
+                    Id = a.Id,
+                    CustomerId = a.CustomerId,
+                    CustomerName = a.Customer!.FullName,
+                    ScheduledAt = a.ScheduledAt,
+                    Status = a.Status,
+                    VehicleId = a.VehicleId,
+                    VehicleMake = a.Vehicle!.Year + " " + a.Vehicle!.Make + " " + a.Vehicle!.Model
+                }).ToListAsync();
         }
 
-        public async Task<Appointment?> GetByIdAsync(int id)
+        public async Task<AppointmentResponseDTO?> GetByIdAsync(int id)
         {
-            return await _context.Appointments
-                .FirstOrDefaultAsync(a => a.Id == id);
+            return await _context.Appointments.Include(a => a.Customer).Include(a => a.Vehicle).AsNoTracking().Where(a => a.Id == id).Select(a => new AppointmentResponseDTO
+                {
+                    Id = a.Id,
+                    CustomerId = a.CustomerId,
+                    CustomerName = a.Customer!.FullName,
+                    ScheduledAt = a.ScheduledAt,
+                    Status = a.Status,
+                    VehicleId = a.VehicleId,
+                    VehicleMake = a.Vehicle!.Year + " " + a.Vehicle!.Make + " " + a.Vehicle!.Model
+                }).FirstOrDefaultAsync();
         }
+
+            public async Task<Appointment?> GetEntityByIdAsync(int id)
+            {
+                return await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id);
+            }
 
         public async Task<Appointment> AddAppointmentAsync(Appointment appointment)
         {

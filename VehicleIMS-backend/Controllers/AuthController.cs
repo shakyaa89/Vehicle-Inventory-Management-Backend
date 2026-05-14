@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using VehicleIMS_backend.Application.DTO;
 using VehicleIMS_backend.Application.Interfaces.IServices;
@@ -10,14 +11,16 @@ namespace VehicleIMS_backend.Controllers
 {
     [Route("api/auth")]
     [ApiController]
-    public class AuthController(IAuthService authService, UserManager<User> userManager): ControllerBase
+    public class AuthController(IAuthService authService, UserManager<User> userManager, ILogger<AuthController> logger): ControllerBase
     {
         private readonly IAuthService _authService = authService;
         private readonly UserManager<User> _userManager = userManager;
+        private readonly ILogger<AuthController> _logger = logger;
 
         [HttpPost("register/customer")]
         public async Task<IActionResult> RegisterCustomer(RegisterDTO registerDTO)
         {
+            _logger.LogInformation("Registering customer {UserName}", registerDTO.UserName);
             var customer = await _authService.RegisterCustomer(registerDTO);
 
             return Ok(customer);
@@ -27,6 +30,8 @@ namespace VehicleIMS_backend.Controllers
         public async Task<IActionResult> Login(LoginDTO loginDTO)
         {
             var customer = await _authService.Login(loginDTO);
+
+            _logger.LogInformation("User login succeeded for {UserName}", loginDTO.UserName);
 
             return Ok(new
             {
@@ -38,6 +43,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpPost("register/staff")]
         public async Task<IActionResult> RegisterStaff(RegisterDTO registerDTO)
         {
+            _logger.LogInformation("Registering staff {UserName}", registerDTO.UserName);
             var staff = await _authService.RegisterStaff(registerDTO);
 
             return Ok(staff);
@@ -49,6 +55,8 @@ namespace VehicleIMS_backend.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var role = User.FindFirstValue(ClaimTypes.Role);
+
+            _logger.LogInformation("Checking auth for user {UserId}", userId);
 
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "Invalid token payload" });
@@ -72,6 +80,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpGet("customers")]
         public async Task<IActionResult> GetCustomers([FromQuery] string? query)
         {
+            _logger.LogInformation("Fetching customers with query {Query}", query ?? string.Empty);
             var customers = await _authService.GetCustomersAsync(query);
             return Ok(customers);
         }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using VehicleIMS_backend.Application.DTO;
 using VehicleIMS_backend.Application.Interfaces.IServices;
 
@@ -6,13 +7,15 @@ namespace VehicleIMS_backend.Controllers
 {
     [Route("api/parts")]
     [ApiController]
-    public class PartController(IPartService partService) : ControllerBase
+    public class PartController(IPartService partService, ILogger<PartController> logger) : ControllerBase
     {
         private readonly IPartService _partService = partService;
+        private readonly ILogger<PartController> _logger = logger;
 
         [HttpGet]
         public async Task<IActionResult> GetAllParts()
         {
+            _logger.LogInformation("Fetching all parts");
             var parts = await _partService.GetAllAsync();
             return Ok(parts);
         }
@@ -20,6 +23,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetPartById(int id)
         {
+            _logger.LogInformation("Fetching part {PartId}", id);
             var part = await _partService.GetByIdAsync(id);
 
             if (part is null)
@@ -31,6 +35,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpPost]
         public async Task<IActionResult> AddPart(PartDTO partData)
         {
+            _logger.LogInformation("Creating part {PartName} with SKU {Sku}", partData.Name, partData.Sku);
             var part = await _partService.AddAsync(partData);
 
             return CreatedAtAction(nameof(GetPartById), new { id = part.Id }, part);
@@ -39,6 +44,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdatePart(int id, PartDTO partData)
         {
+            _logger.LogInformation("Updating part {PartId}", id);
             var part = await _partService.UpdateAsync(id, partData);
 
             if (part is null)
@@ -50,6 +56,7 @@ namespace VehicleIMS_backend.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeletePart(int id)
         {
+            _logger.LogInformation("Deleting part {PartId}", id);
             var deleted = await _partService.DeleteAsync(id);
 
             if (!deleted)

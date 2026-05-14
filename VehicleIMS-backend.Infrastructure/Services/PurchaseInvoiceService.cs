@@ -1,25 +1,32 @@
 using VehicleIMS_backend.Application.DTO;
+using VehicleIMS_backend.Application.Exceptions;
 using VehicleIMS_backend.Application.Interfaces.IRepositories;
 using VehicleIMS_backend.Application.Interfaces.IServices;
 using VehicleIMS_backend.Domain.Models;
+using Microsoft.Extensions.Logging;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
-    public class PurchaseInvoiceService(IPurchaseInvoiceRepository purchaseInvoiceRepository) : IPurchaseInvoiceService
+    public class PurchaseInvoiceService(IPurchaseInvoiceRepository purchaseInvoiceRepository, ILogger<PurchaseInvoiceService> logger) : IPurchaseInvoiceService
     {
         private readonly IPurchaseInvoiceRepository _purchaseInvoiceRepository = purchaseInvoiceRepository;
+        private readonly ILogger<PurchaseInvoiceService> _logger = logger;
 
         public async Task<PurchaseInvoiceDTO?> CreateAsync(PurchaseInvoiceDTO invoiceData, long userId)
         {
+            _logger.LogInformation("Creating purchase invoice for vendor {VendorId} by user {UserId}", invoiceData.VendorId, userId);
+            if (invoiceData.Items is null || invoiceData.Items.Count == 0)
+                throw new BadRequestException("Invoice items are required.");
+
             var vendorExists = await _purchaseInvoiceRepository.VendorExistsAsync(invoiceData.VendorId);
             if (!vendorExists)
-                return null;
+                throw new NotFoundException("Vendor not found.");
 
             var partIds = invoiceData.Items.Select(i => i.PartId).Distinct().ToList();
             var parts = await _purchaseInvoiceRepository.GetPartsByIdsAsync(partIds);
 
             if (parts.Count != partIds.Count)
-                return null;
+                throw new NotFoundException("One or more parts not found.");
 
             var partsById = parts.ToDictionary(part => part.Id);
             var now = DateTime.UtcNow;
@@ -80,9 +87,10 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task<PurchaseInvoiceDTO?> GetByIdAsync(int id)
         {
+            _logger.LogInformation("Fetching purchase invoice {InvoiceId}", id);
             var invoice = await _purchaseInvoiceRepository.GetByIdAsync(id);
             if (invoice is null)
-                return null;
+                throw new NotFoundException("Purchase invoice not found.");
 
             var items = await _purchaseInvoiceRepository.GetItemsByInvoiceIdAsync(invoice.Id);
 

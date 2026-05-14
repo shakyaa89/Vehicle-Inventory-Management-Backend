@@ -1,34 +1,42 @@
 using VehicleIMS_backend.Application.DTO;
+using VehicleIMS_backend.Application.Exceptions;
 using VehicleIMS_backend.Application.Interfaces.IRepositories;
 using VehicleIMS_backend.Application.Interfaces.IServices;
 using VehicleIMS_backend.Domain.Models;
+using Microsoft.Extensions.Logging;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
-    public class PartRequestService(IPartRequestRepository partRequestRepository) : IPartRequestService
+    public class PartRequestService(IPartRequestRepository partRequestRepository, ILogger<PartRequestService> logger) : IPartRequestService
     {
         private readonly IPartRequestRepository _partRequestRepository = partRequestRepository;
+        private readonly ILogger<PartRequestService> _logger = logger;
 
         public async Task<IEnumerable<PartRequest>> GetAllAsync()
         {
+            _logger.LogInformation("Fetching all part requests");
             return await _partRequestRepository.GetAllAsync();
         }
 
         public async Task<IEnumerable<PartRequest>> GetByCustomerIdAsync(long customerId)
         {
+            _logger.LogInformation("Fetching part requests for customer {CustomerId}", customerId);
             return await _partRequestRepository.GetByCustomerIdAsync(customerId);
         }
 
         public async Task<PartRequest?> GetByIdAsync(int id)
         {
-            return await _partRequestRepository.GetByIdAsync(id);
+            _logger.LogInformation("Fetching part request {RequestId}", id);
+            return await _partRequestRepository.GetByIdAsync(id) ??
+                throw new NotFoundException("Part request not found.");
         }
 
         public async Task<PartRequest> AddAsync(PartRequestDTO partRequestData)
         {
+            _logger.LogInformation("Creating part request for customer {CustomerId}", partRequestData.CustomerId);
             var customerExists = await _partRequestRepository.CustomerExistsAsync(partRequestData.CustomerId);
             if (!customerExists)
-                throw new Exception("Customer does not exist.");
+                throw new NotFoundException("Customer does not exist.");
 
             var partRequest = new PartRequest
             {
@@ -45,12 +53,22 @@ namespace VehicleIMS_backend.Infrastructure.Services
 
         public async Task<PartRequest?> CompleteAsync(int id)
         {
+            _logger.LogInformation("Completing part request {RequestId}", id);
             return await UpdateStatusAsync(id, "Completed");
         }
 
         public async Task<PartRequest?> RejectAsync(int id)
         {
+            _logger.LogInformation("Rejecting part request {RequestId}", id);
             return await UpdateStatusAsync(id, "Rejected");
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            _logger.LogInformation("Deleting part request {RequestId}", id);
+            var partRequest = await _partRequestRepository.GetByIdAsync(id) ?? throw new NotFoundException("Part Request Not Found!");
+
+            await _partRequestRepository.DeletePartRequestAsync(partRequest);
         }
 
         private async Task<PartRequest?> UpdateStatusAsync(int id, string status)
@@ -58,7 +76,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             var existingRequest = await _partRequestRepository.GetByIdAsync(id);
 
             if (existingRequest is null)
-                return null;
+                throw new NotFoundException("Part request not found.");
 
             existingRequest.Status = status;
             return await _partRequestRepository.UpdateAsync(existingRequest);
