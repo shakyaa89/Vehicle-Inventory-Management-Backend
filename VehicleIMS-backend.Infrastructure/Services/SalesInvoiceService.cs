@@ -10,12 +10,14 @@ using VehicleIMS_backend.Domain.Models;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Service for creating and sending sales invoices
     public class SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository, IEmailService emailService, ILogger<SalesInvoiceService> logger) : ISalesInvoiceService
     {
         private readonly ISalesInvoiceRepository _salesInvoiceRepository = salesInvoiceRepository;
         private readonly IEmailService _emailService = emailService;
         private readonly ILogger<SalesInvoiceService> _logger = logger;
 
+        // Create a sales invoice and update stock
         public async Task<SalesInvoiceDTO?> CreateAsync(SalesInvoiceDTO invoiceData, long staffId)
         {
             _logger.LogInformation("Creating sales invoice for customer {CustomerId} by staff {StaffId}", invoiceData.CustomerId, staffId);
@@ -25,6 +27,9 @@ namespace VehicleIMS_backend.Infrastructure.Services
             var customerExists = await _salesInvoiceRepository.CustomerExistsAsync(invoiceData.CustomerId);
             if (!customerExists)
                 throw new NotFoundException("Customer not found.");
+
+            var customer = await _salesInvoiceRepository.GetCustomerByUserIdAsync(invoiceData.CustomerId)
+                ?? throw new NotFoundException("Customer not found.");
 
             var partIds = invoiceData.Items.Select(i => i.PartId).Distinct().ToList();
             var parts = await _salesInvoiceRepository.GetPartsByIdsAsync(partIds);
@@ -67,6 +72,13 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 totalAmount = totalAmount - (totalAmount * 0.1m);
             }
 
+            var dueAmount = Convert.ToInt32(Math.Round(totalAmount));
+
+            if (invoiceData.IsCredit && customer.CreditBalance + dueAmount > 3000)
+            {
+                throw new BadRequestException("Customer credit balance limit of 3000 has been exceeded.");
+            }
+
             var invoice = new SalesInvoice
             {
                 CustomerId = invoiceData.CustomerId,
@@ -74,10 +86,15 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 TotalAmount = totalAmount,
                 LoyaltyApplied = invoiceData.LoyaltyApplied,
                 IsCredit = invoiceData.IsCredit,
-                DueAmount = invoiceData.IsCredit ? Convert.ToInt32(Math.Round(totalAmount)) : 0,
+                DueAmount = invoiceData.IsCredit ? dueAmount : 0,
                 CreditDueDate = invoiceData.IsCredit ? invoiceData.CreditDueDate : null,
                 CreatedAt = now
             };
+
+            if (invoiceData.IsCredit)
+            {
+                customer.CreditBalance += dueAmount;
+            }
 
             foreach (var item in items)
             {
@@ -109,6 +126,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             };
         }
 
+        // Get sales invoice by id
         public async Task<SalesInvoiceDTO?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Fetching sales invoice {InvoiceId}", id);
@@ -121,6 +139,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return MapInvoice(invoice, items);
         }
 
+        // Get all sales invoices
         public async Task<List<SalesInvoiceDTO>> GetAllAsync()
         {
             _logger.LogInformation("Fetching all sales invoices");
@@ -139,6 +158,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return results;
         }
 
+        // Get sales invoices for a customer
         public async Task<List<SalesInvoiceDTO>> GetByCustomerIdAsync(long customerId)
         {
             _logger.LogInformation("Fetching sales invoices for customer {CustomerId}", customerId);
@@ -157,6 +177,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return results;
         }
 
+        // Build and send invoice email to customer
         public async Task SendInvoiceEmailAsync(int invoiceId, long staffId)
         {
             _logger.LogInformation("Sending sales invoice email for invoice {InvoiceId}", invoiceId);
@@ -184,6 +205,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             await _emailService.SendEmailAsync(customer.Email, subject, body);
         }
 
+        // Map domain invoice and items to DTO
         private static SalesInvoiceDTO MapInvoice(SalesInvoice invoice, List<SalesInvoiceItem> items)
         {
             return new SalesInvoiceDTO

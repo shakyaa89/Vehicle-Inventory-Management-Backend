@@ -14,10 +14,10 @@ namespace VehicleIMS_backend.Controllers
         private readonly ILogger<AppointmentController> _logger = logger;
 
         [HttpGet]
-        public async Task<IActionResult> GetAllAppointments()
+        public async Task<IActionResult> GetAllAppointments([FromQuery] string? search = null)
         {
-            _logger.LogInformation("Fetching all appointments");
-            var appointments = await _appointmentService.GetAllAsync();
+            _logger.LogInformation("Fetching all appointments with search term {SearchTerm}", search);
+            var appointments = await _appointmentService.GetAllAsync(search);
             return Ok(appointments);
         }
 

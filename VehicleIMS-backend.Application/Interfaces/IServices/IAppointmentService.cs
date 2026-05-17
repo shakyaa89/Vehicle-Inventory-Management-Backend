@@ -5,7 +5,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IServices
 {
     public interface IAppointmentService
     {
-        Task<IEnumerable<AppointmentResponseDTO>> GetAllAsync();
+        Task<IEnumerable<AppointmentResponseDTO>> GetAllAsync(string? searchTerm = null);
         Task<IEnumerable<AppointmentResponseDTO>> GetByCustomerIdAsync(long customerId);
         Task<AppointmentResponseDTO?> GetByIdAsync(int id);
         Task<AppointmentResponseDTO> AddAppointmentAsync(AppointmentDTO appointmentData);

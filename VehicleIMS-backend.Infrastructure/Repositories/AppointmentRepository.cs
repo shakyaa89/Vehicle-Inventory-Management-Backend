@@ -10,9 +10,25 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
     {
         private readonly AppDbContext _context = context;
 
-        public async Task<List<AppointmentResponseDTO>> GetAllAsync()
+        public async Task<List<AppointmentResponseDTO>> GetAllAsync(string? searchTerm = null)
         {
-            return await _context.Appointments.Include(a => a.Customer).Include(a => a.Vehicle).AsNoTracking().Select(a => new AppointmentResponseDTO
+            var query = _context.Appointments
+                .Include(a => a.Customer)
+                .Include(a => a.Vehicle)
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var normalizedSearchTerm = searchTerm.Trim().ToLower();
+                query = query.Where(a =>
+                    (a.Customer != null && a.Customer.FullName.ToLower().Contains(normalizedSearchTerm)) ||
+                    (a.Vehicle != null && (
+                        (a.Vehicle.Make ?? string.Empty).ToLower().Contains(normalizedSearchTerm) ||
+                        (a.Vehicle.Model ?? string.Empty).ToLower().Contains(normalizedSearchTerm) 
+                    )));
+            }
+
+            return await query.Select(a => new AppointmentResponseDTO
                 {
                     Id = a.Id,
                     CustomerId = a.CustomerId,

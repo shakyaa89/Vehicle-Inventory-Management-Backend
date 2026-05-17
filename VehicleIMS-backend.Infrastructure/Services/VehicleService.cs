@@ -7,17 +7,20 @@ using Microsoft.Extensions.Logging;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Service for managing customer vehicles
     public class VehicleService(IVehicleRepository vehicleRepository, ILogger<VehicleService> logger) : IVehicleService
     {
         private readonly IVehicleRepository _vehicleRepository = vehicleRepository;
         private readonly ILogger<VehicleService> _logger = logger;
 
+        // Get all vehicles
         public async Task<IEnumerable<Vehicle>> GetAllAsync()
         {
             _logger.LogInformation("Fetching all vehicles");
             return await _vehicleRepository.GetAllAsync();
         }
 
+        // Get vehicle by id
         public async Task<Vehicle?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Fetching vehicle {VehicleId}", id);
@@ -25,12 +28,14 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 throw new NotFoundException("Vehicle not found.");
         }
 
+        // Get vehicles for a specific customer
         public async Task<IEnumerable<Vehicle>> GetByCustomerIdAsync(long customerId)
         {
             _logger.LogInformation("Fetching vehicles for customer {CustomerId}", customerId);
             return await _vehicleRepository.GetByCustomerIdAsync(customerId);
         }
 
+        // Add a new vehicle for a customer
         public async Task<Vehicle> AddAsync(VehicleDTO vehicleDTO)
         {
             _logger.LogInformation("Creating vehicle for customer {CustomerId}", vehicleDTO.CustomerId);
@@ -51,6 +56,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return await _vehicleRepository.AddAsync(vehicle);
         }
 
+        // Update vehicle details
         public async Task<Vehicle?> UpdateAsync(int id, VehicleDTO vehicleDTO)
         {
             _logger.LogInformation("Updating vehicle {VehicleId}", id);
@@ -75,6 +81,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return existingVehicle;
         }
 
+        // Delete a vehicle
         public async Task<bool> DeleteAsync(int id)
         {
             _logger.LogInformation("Deleting vehicle {VehicleId}", id);

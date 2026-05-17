@@ -5,7 +5,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IRepositories
 {
     public interface IAppointmentRepository
     {
-        Task<List<AppointmentResponseDTO>> GetAllAsync();
+        Task<List<AppointmentResponseDTO>> GetAllAsync(string? searchTerm = null);
         Task<List<AppointmentResponseDTO>> GetByCustomerIdAsync(long customerId);
         Task<AppointmentResponseDTO?> GetByIdAsync(int id);
         Task<Appointment?> GetEntityByIdAsync(int id);

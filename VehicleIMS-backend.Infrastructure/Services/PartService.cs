@@ -7,17 +7,20 @@ using Microsoft.Extensions.Logging;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Service for managing parts inventory
     public class PartService(IPartRepository partRepository, ILogger<PartService> logger) : IPartService
     {
         private readonly IPartRepository _partRepository = partRepository;
         private readonly ILogger<PartService> _logger = logger;
 
+        // Get all parts
         public async Task<IEnumerable<Part>> GetAllAsync()
         {
             _logger.LogInformation("Fetching all parts");
             return await _partRepository.GetAllAsync();
         }
 
+        // Get a part by id
         public async Task<Part?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Fetching part {PartId}", id);
@@ -25,6 +28,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 throw new NotFoundException("Part not found.");
         }
 
+        // Add a new part to inventory
         public async Task<Part> AddAsync(PartDTO partData)
         {
             _logger.LogInformation("Creating part {PartName} with SKU {Sku}", partData.Name, partData.Sku);
@@ -39,6 +43,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return await _partRepository.AddAsync(part);
         }
 
+        // Update existing part details
         public async Task<Part?> UpdateAsync(int id, PartDTO partData)
         {
             _logger.LogInformation("Updating part {PartId}", id);
@@ -55,6 +60,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return await _partRepository.UpdatePartAsync(existingPart);
         }
 
+        // Delete a part
         public async Task<bool> DeleteAsync(int id)
         {
             _logger.LogInformation("Deleting part {PartId}", id);

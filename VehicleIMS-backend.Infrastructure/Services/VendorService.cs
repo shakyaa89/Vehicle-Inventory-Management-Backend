@@ -7,17 +7,20 @@ using Microsoft.Extensions.Logging;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Service for managing vendors
     public class VendorService(IVendorRepository vendorRepository, ILogger<VendorService> logger) : IVendorService
     {
         private readonly IVendorRepository _vendorRepository = vendorRepository;
         private readonly ILogger<VendorService> _logger = logger;
 
+        // Get all vendors
         public async Task<IEnumerable<Vendor>> GetAllAsync()
         {
             _logger.LogInformation("Fetching all vendors");
             return await _vendorRepository.GetAllAsync();
         }
 
+        // Get a vendor by id
         public async Task<Vendor?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Fetching vendor {VendorId}", id);
@@ -25,6 +28,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 throw new NotFoundException("Vendor not found.");
         }
 
+        // Add a new vendor
         public async Task<Vendor> AddAsync(VendorDTO vendorData)
         {
             _logger.LogInformation("Creating vendor {VendorName}", vendorData.Name);
@@ -39,6 +43,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return await _vendorRepository.AddAsync(vendor);
         }
 
+        // Update vendor details
         public async Task<Vendor?> UpdateAsync(int id, VendorDTO vendorData)
         {
             _logger.LogInformation("Updating vendor {VendorId}", id);
@@ -55,6 +60,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return await _vendorRepository.UpdateVendorAsync(existingVendor);
         }
 
+        // Delete a vendor
         public async Task<bool> DeleteAsync(int id)
         {
             _logger.LogInformation("Deleting vendor {VendorId}", id);

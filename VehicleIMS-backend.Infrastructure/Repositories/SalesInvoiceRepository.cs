@@ -14,6 +14,11 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
             return await _context.CustomerStats.AnyAsync(c => c.UserId == customerId);
         }
 
+        public async Task<CustomerStats?> GetCustomerByUserIdAsync(long customerId)
+        {
+            return await _context.CustomerStats.FirstOrDefaultAsync(c => c.UserId == customerId);
+        }
+
         public async Task<List<Part>> GetPartsByIdsAsync(IEnumerable<int> partIds)
         {
             return await _context.Parts.Where(p => partIds.Contains(p.Id)).ToListAsync();

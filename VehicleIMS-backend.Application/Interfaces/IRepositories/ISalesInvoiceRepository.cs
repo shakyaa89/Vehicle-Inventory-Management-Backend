@@ -5,6 +5,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IRepositories
     public interface ISalesInvoiceRepository
     {
         Task<bool> CustomerExistsAsync(long customerId);
+        Task<CustomerStats?> GetCustomerByUserIdAsync(long customerId);
         Task<List<Part>> GetPartsByIdsAsync(IEnumerable<int> partIds);
         Task CreateAsync(SalesInvoice invoice, List<SalesInvoiceItem> items);
         Task<SalesInvoice?> GetByIdAsync(int id);

@@ -12,6 +12,7 @@ using VehicleIMS_backend.Domain.Models;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Authentication and user management service
     public class AuthService(UserManager<User> userManager, RoleManager<Roles> roleManager, IAuthRepository authRepository, SignInManager<User> signInManager, IJwtTokenService jwtTokenService, ILogger<AuthService> logger) : IAuthService
     {
         private readonly UserManager<User> _userManager = userManager;
@@ -21,6 +22,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
         private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
         private readonly ILogger<AuthService> _logger = logger;
 
+        // Register a new customer account
         public async Task<CustomerStats> RegisterCustomer(RegisterDTO registerDTO)
         {
             _logger.LogInformation("Registering customer {UserName}", registerDTO.UserName);
@@ -49,6 +51,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             {
                 UserId = user.Id,
                 TotalSpent = 0,
+                CreditBalance = 0,
             };
 
             await _authRepository.CreateCustomerAsync(customer);
@@ -58,6 +61,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return customer;
         }
 
+        // Register a new staff account
         public async Task<User> RegisterStaff(RegisterDTO registerDTO)
         {
             _logger.LogInformation("Registering staff {UserName}", registerDTO.UserName);
@@ -86,6 +90,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return user;
         }
 
+        // Authenticate user and return JWT token + user info
         public async Task<object> Login(LoginDTO loginDTO)
         {
             _logger.LogInformation("User login attempt for {UserName}", loginDTO.UserName);
@@ -118,6 +123,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             };
         }
 
+        // Search customers with optional query
         public async Task<IEnumerable<CustomerStatsDTO>> GetCustomersAsync(string? query)
         {
             _logger.LogInformation("Fetching customers with query {Query}", query ?? string.Empty);
@@ -130,7 +136,8 @@ namespace VehicleIMS_backend.Infrastructure.Services
                     UserName = customer.User?.UserName ?? string.Empty,
                     FullName = customer.User?.FullName ?? string.Empty,
                     Email = customer.User?.Email ?? string.Empty,
-                    PhoneNumber = customer.User?.PhoneNumber ?? string.Empty
+                    PhoneNumber = customer.User?.PhoneNumber ?? string.Empty,
+                    CreditBalance = customer.CreditBalance
                 })
                 .Where(customer => customer.Id != 0)
                 .OrderBy(customer => customer.FullName)

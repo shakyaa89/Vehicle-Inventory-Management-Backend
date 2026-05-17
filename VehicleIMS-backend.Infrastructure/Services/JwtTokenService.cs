@@ -13,6 +13,7 @@ using VehicleIMS_backend.Infrastructure.Configurations;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Service to generate JWT tokens for users
     public class JwtTokenService(
     IOptions<JwtOptions> jwtOptions,
     UserManager<User> userManager,
@@ -20,6 +21,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
     {
         private readonly JwtOptions _jwtOptions = jwtOptions.Value;
         private readonly ILogger<JwtTokenService> _logger = logger;
+        // Generate JWT token for a user including role claims
         public async Task<string> GenerateUserToken(User user)
         {
             _logger.LogInformation("Generating JWT token for user {UserId}", user.Id);
@@ -40,6 +42,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             //creates the actual token
             return GenerateToken(claims);
         }
+        // Create a JWT string from given claims
         public string GenerateToken(IEnumerable<Claim> claims)
         {
             // will be used to create signature

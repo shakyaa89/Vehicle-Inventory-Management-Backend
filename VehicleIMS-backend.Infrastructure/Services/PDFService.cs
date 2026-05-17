@@ -6,8 +6,10 @@ using VehicleIMS_backend.Application.Interfaces.IServices;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Service to generate PDF reports
     public class PDFService : IPDFService
     {
+        // Generate a financial report PDF from data model
         public byte[] GenerateFinancialReport(FinancialReportDTO model)
         {
             var document = Document.Create(container =>

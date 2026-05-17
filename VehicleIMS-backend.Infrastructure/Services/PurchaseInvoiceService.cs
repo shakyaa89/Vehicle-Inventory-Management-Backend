@@ -7,11 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Service to handle purchase invoice creation and retrieval
     public class PurchaseInvoiceService(IPurchaseInvoiceRepository purchaseInvoiceRepository, ILogger<PurchaseInvoiceService> logger) : IPurchaseInvoiceService
     {
         private readonly IPurchaseInvoiceRepository _purchaseInvoiceRepository = purchaseInvoiceRepository;
         private readonly ILogger<PurchaseInvoiceService> _logger = logger;
 
+        // Create a purchase invoice and update part stock
         public async Task<PurchaseInvoiceDTO?> CreateAsync(PurchaseInvoiceDTO invoiceData, long userId)
         {
             _logger.LogInformation("Creating purchase invoice for vendor {VendorId} by user {UserId}", invoiceData.VendorId, userId);
@@ -85,6 +87,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
             };
         }
 
+        // Get purchase invoice by id
         public async Task<PurchaseInvoiceDTO?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Fetching purchase invoice {InvoiceId}", id);

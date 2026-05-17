@@ -19,5 +19,7 @@ namespace VehicleIMS_backend.Domain.Models
 
         public int TotalSpent { get; set; } = 0;
 
+        public int CreditBalance { get; set; } = 0;
+
     }
 }

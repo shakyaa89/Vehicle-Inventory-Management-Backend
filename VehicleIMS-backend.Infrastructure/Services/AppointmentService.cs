@@ -7,23 +7,27 @@ using Microsoft.Extensions.Logging;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Service for managing appointment operations
     public class AppointmentService(IAppointmentRepository appointmentRepository, ILogger<AppointmentService> logger) : IAppointmentService
     {
         private readonly IAppointmentRepository _appointmentRepository = appointmentRepository;
         private readonly ILogger<AppointmentService> _logger = logger;
 
-        public async Task<IEnumerable<AppointmentResponseDTO>> GetAllAsync()
+        // Get all appointments, optionally filtered by search term
+        public async Task<IEnumerable<AppointmentResponseDTO>> GetAllAsync(string? searchTerm = null)
         {
-            _logger.LogInformation("Fetching all appointments");
-            return await _appointmentRepository.GetAllAsync();
+            _logger.LogInformation("Fetching all appointments with search term {SearchTerm}", searchTerm);
+            return await _appointmentRepository.GetAllAsync(searchTerm);
         }
 
+        // Get appointments for a specific customer
         public async Task<IEnumerable<AppointmentResponseDTO>> GetByCustomerIdAsync(long customerId)
         {
             _logger.LogInformation("Fetching appointments for customer {CustomerId}", customerId);
             return await _appointmentRepository.GetByCustomerIdAsync(customerId);
         }
 
+        // Get a single appointment by id
         public async Task<AppointmentResponseDTO?> GetByIdAsync(int id)
         {
             _logger.LogInformation("Fetching appointment {AppointmentId}", id);
@@ -31,6 +35,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 throw new NotFoundException("Appointment not found!");
         }
 
+        // Create a new appointment
         public async Task<AppointmentResponseDTO> AddAppointmentAsync(AppointmentDTO appointmentData)
         {
             _logger.LogInformation(
@@ -52,6 +57,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 throw new NotFoundException("Appointment not found!");
         }
 
+        // Update an existing appointment
         public async Task<AppointmentResponseDTO?> UpdateAsync(int id, AppointmentDTO appointmentData)
         {
             _logger.LogInformation("Updating appointment {AppointmentId}", id);
@@ -72,6 +78,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 throw new NotFoundException("Appointment not found!");
         }
 
+        // Delete an appointment by id
         public async Task<bool> DeleteAsync(int id)
         {
             _logger.LogInformation("Deleting appointment {AppointmentId}", id);
@@ -84,18 +91,21 @@ namespace VehicleIMS_backend.Infrastructure.Services
             return true;
         }
 
+        // Mark appointment as completed
         public async Task<AppointmentResponseDTO?> CompleteAsync(int id)
         {
             _logger.LogInformation("Marking appointment {AppointmentId} as completed", id);
             return await UpdateStatusAsync(id, "Completed");
         }
 
+        // Cancel an appointment
         public async Task<AppointmentResponseDTO?> CancelAsync(int id)
         {
             _logger.LogInformation("Cancelling appointment {AppointmentId}", id);
             return await UpdateStatusAsync(id, "Cancelled");
         }
 
+        // Internal helper to update appointment status
         private async Task<AppointmentResponseDTO?> UpdateStatusAsync(int id, string status)
         {
             var existingAppointment = await _appointmentRepository.GetEntityByIdAsync(id);
@@ -110,6 +120,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 throw new NotFoundException("Appointment not found!");
         }
 
+        // Ensure referenced customer and vehicle exist
         private async Task ValidateReferencesAsync(AppointmentDTO appointmentData)
         {
             var customerExists = await _appointmentRepository.CustomerExistsAsync(appointmentData.CustomerId);

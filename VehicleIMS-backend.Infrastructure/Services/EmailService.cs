@@ -9,11 +9,13 @@ using VehicleIMS_backend.Infrastructure.Configurations;
 
 namespace VehicleIMS_backend.Infrastructure.Services
 {
+    // Simple email sender using SMTP
     public class EmailService(IOptions<EmailOptions> options, ILogger<EmailService> logger) : IEmailService
     {
         private readonly EmailOptions _options = options.Value;
         private readonly ILogger<EmailService> _logger = logger;
 
+        // Send an email with HTML body
         public async Task<bool> SendEmailAsync(
             string toEmail,
             string subject,
