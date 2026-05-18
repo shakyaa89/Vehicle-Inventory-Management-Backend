@@ -72,7 +72,49 @@ namespace VehicleIMS_backend.Controllers
                 userName = user.UserName,
                 email = user.Email,
                 fullName = user.FullName,
+                phoneNumber = user.PhoneNumber,
                 role
+            });
+        }
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile(UpdateProfileDTO updateProfileDTO)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token payload" });
+
+            if (!long.TryParse(userId, out var parsedUserId))
+                return Unauthorized(new { message = "Invalid user id" });
+
+            var updatedUser = await _authService.UpdateProfileAsync(parsedUserId, updateProfileDTO);
+
+            return Ok(new
+            {
+                message = "Profile updated successfully",
+                data = updatedUser
+            });
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDTO changePasswordDTO)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { message = "Invalid token payload" });
+
+            if (!long.TryParse(userId, out var parsedUserId))
+                return Unauthorized(new { message = "Invalid user id" });
+
+            await _authService.ChangePasswordAsync(parsedUserId, changePasswordDTO);
+
+            return Ok(new
+            {
+                message = "Password updated successfully"
             });
         }
 

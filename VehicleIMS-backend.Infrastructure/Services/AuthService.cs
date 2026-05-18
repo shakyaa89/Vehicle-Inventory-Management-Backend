@@ -118,6 +118,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
                     userName = user.UserName,
                     email = user.Email,
                     fullName = user.FullName,
+                    phoneNumber = user.PhoneNumber,
                     role
                 }
             };
@@ -142,6 +143,54 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 .Where(customer => customer.Id != 0)
                 .OrderBy(customer => customer.FullName)
                 .ToList();
+        }
+
+        public async Task<object> UpdateProfileAsync(long userId, UpdateProfileDTO updateProfileDTO)
+        {
+            _logger.LogInformation("Updating profile for user {UserId}", userId);
+
+            var user = await _userManager.FindByIdAsync(userId.ToString())
+                ?? throw new NotFoundException("User not found");
+
+            user.UserName = updateProfileDTO.UserName.Trim();
+            user.FullName = updateProfileDTO.FullName.Trim();
+            user.Email = updateProfileDTO.Email.Trim();
+            user.PhoneNumber = updateProfileDTO.PhoneNumber.Trim();
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault();
+
+            return new
+            {
+                id = user.Id,
+                userName = user.UserName,
+                email = user.Email,
+                fullName = user.FullName,
+                phoneNumber = user.PhoneNumber,
+                role
+            };
+        }
+
+        public async Task ChangePasswordAsync(long userId, ChangePasswordDTO changePasswordDTO)
+        {
+            _logger.LogInformation("Changing password for user {UserId}", userId);
+
+            var user = await _userManager.FindByIdAsync(userId.ToString())
+                ?? throw new NotFoundException("User not found");
+
+            var result = await _userManager.ChangePasswordAsync(
+                user,
+                changePasswordDTO.CurrentPassword,
+                changePasswordDTO.NewPassword
+            );
+
+            if (!result.Succeeded)
+                throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
         }
     }
 }
