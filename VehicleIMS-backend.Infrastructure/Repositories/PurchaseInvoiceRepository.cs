@@ -39,5 +39,10 @@ namespace VehicleIMS_backend.Infrastructure.Repositories
         {
             return await _context.PurchaseInvoiceItems.AsNoTracking().Where(i => i.PurchaseInvoiceId == invoiceId).ToListAsync();
         }
+
+        public async Task<List<PurchaseInvoice>> GetAllAsync()
+        {
+            return await _context.PurchaseInvoices.AsNoTracking().OrderByDescending(i => i.CreatedAt).ToListAsync();
+        }
     }
 }

@@ -16,7 +16,6 @@ namespace VehicleIMS_backend.Infrastructure.Persistence
         }
 
         public DbSet<CustomerStats> CustomerStats { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Appointment> Appointments { get; set; }

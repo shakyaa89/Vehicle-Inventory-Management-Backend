@@ -6,5 +6,6 @@ namespace VehicleIMS_backend.Application.Interfaces.IServices
     {
         Task<PurchaseInvoiceDTO?> CreateAsync(PurchaseInvoiceDTO invoiceData, long userId);
         Task<PurchaseInvoiceDTO?> GetByIdAsync(int id);
+        Task<List<PurchaseInvoiceDTO>> GetAllAsync();
     }
 }

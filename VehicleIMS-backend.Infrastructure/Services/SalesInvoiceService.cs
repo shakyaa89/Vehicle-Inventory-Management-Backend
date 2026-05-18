@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using VehicleIMS_backend.Application.DTO;
 using VehicleIMS_backend.Application.Exceptions;
@@ -11,10 +12,11 @@ using VehicleIMS_backend.Domain.Models;
 namespace VehicleIMS_backend.Infrastructure.Services
 {
     // Service for creating and sending sales invoices
-    public class SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository, IEmailService emailService, ILogger<SalesInvoiceService> logger) : ISalesInvoiceService
+    public class SalesInvoiceService(ISalesInvoiceRepository salesInvoiceRepository, IEmailService emailService, UserManager<User> userManager, ILogger<SalesInvoiceService> logger) : ISalesInvoiceService
     {
         private readonly ISalesInvoiceRepository _salesInvoiceRepository = salesInvoiceRepository;
         private readonly IEmailService _emailService = emailService;
+        private readonly UserManager<User> _userManager = userManager;
         private readonly ILogger<SalesInvoiceService> _logger = logger;
 
         // Create a sales invoice and update stock
@@ -54,6 +56,11 @@ namespace VehicleIMS_backend.Infrastructure.Services
                     throw new BadRequestException("Insufficient stock for requested part.");
 
                 part.StockQuantity -= item.PartQuantity;
+
+                if (part.StockQuantity < 10 && part.StockQuantity + item.PartQuantity >= 10)
+                {
+                    await SendLowStockEmailAsync(part);
+                }
 
                 var subTotal = item.UnitPrice * item.PartQuantity;
                 totalAmount += subTotal;
@@ -203,6 +210,39 @@ namespace VehicleIMS_backend.Infrastructure.Services
             var body = BuildInvoiceEmailBody(invoice, items, partsById, customer, staff);
 
             await _emailService.SendEmailAsync(customer.Email, subject, body);
+        }
+
+        private async Task SendLowStockEmailAsync(Part part)
+        {
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var adminRecipients = admins
+                .Where(user => !string.IsNullOrWhiteSpace(user.Email))
+                .ToList();
+
+            if (adminRecipients.Count == 0)
+            {
+                _logger.LogWarning("Low stock alert skipped for part {PartId} because no admin email was found", part.Id);
+                return;
+            }
+
+            var subject = $"Low stock alert: {part.Name}";
+            var body = $"""
+                <html>
+                <body>
+                    <h2>Low Stock Alert</h2>
+                    <p><strong>Part:</strong> {WebUtility.HtmlEncode(part.Name)}</p>
+                    <p><strong>SKU:</strong> {WebUtility.HtmlEncode(part.Sku)}</p>
+                    <p><strong>Remaining stock:</strong> {part.StockQuantity}</p>
+                </body>
+                </html>
+                """;
+
+            foreach (var admin in adminRecipients)
+            {
+                await _emailService.SendEmailAsync(admin.Email!, subject, body);
+            }
+
+            _logger.LogInformation("Low stock alert sent for part {PartId} to {RecipientCount} admins", part.Id, adminRecipients.Count);
         }
 
         // Map domain invoice and items to DTO

@@ -115,5 +115,22 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 }).ToList()
             };
         }
+
+        // Get all purchase invoices (summary)
+        public async Task<List<PurchaseInvoiceDTO>> GetAllAsync()
+        {
+            _logger.LogInformation("Fetching all purchase invoices");
+            var invoices = await _purchaseInvoiceRepository.GetAllAsync();
+
+            return invoices.Select(inv => new PurchaseInvoiceDTO
+            {
+                Id = inv.Id,
+                VendorId = inv.VendorId,
+                UserId = inv.UserId,
+                TotalAmount = inv.TotalAmount,
+                CreatedAt = inv.CreatedAt,
+                Items = new List<PurchaseInvoiceItemDTO>()
+            }).ToList();
+        }
     }
 }

@@ -9,5 +9,6 @@ namespace VehicleIMS_backend.Application.Interfaces.IRepositories
         Task CreateAsync(PurchaseInvoice invoice, List<PurchaseInvoiceItem> items);
         Task<PurchaseInvoice?> GetByIdAsync(int id);
         Task<List<PurchaseInvoiceItem>> GetItemsByInvoiceIdAsync(int invoiceId);
+        Task<List<PurchaseInvoice>> GetAllAsync();
     }
 }

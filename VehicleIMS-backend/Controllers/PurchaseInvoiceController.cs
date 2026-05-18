@@ -45,5 +45,13 @@ namespace VehicleIMS_backend.Controllers
 
             return Ok(invoice);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetInvoices()
+        {
+            _logger.LogInformation("Fetching all purchase invoices");
+            var invoices = await _purchaseInvoiceService.GetAllAsync();
+            return Ok(invoices);
+        }
     }
 }
