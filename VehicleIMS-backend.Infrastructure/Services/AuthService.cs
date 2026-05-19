@@ -192,5 +192,36 @@ namespace VehicleIMS_backend.Infrastructure.Services
             if (!result.Succeeded)
                 throw new BadRequestException(string.Join(", ", result.Errors.Select(e => e.Description)));
         }
+
+        public async Task<IEnumerable<StaffInfoDTO>> GetStaffAsync(string? query)
+        {
+            _logger.LogInformation("Fetching staff with query {Query}", query ?? string.Empty);
+
+            var staffMembers = await _userManager.GetUsersInRoleAsync("Staff");
+            var staffQuery = staffMembers.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                var normalized = query.Trim().ToLower();
+                staffQuery = staffQuery.Where(staff =>
+                    (staff.FullName ?? string.Empty).ToLower().Contains(normalized) ||
+                    (staff.UserName ?? string.Empty).ToLower().Contains(normalized) ||
+                    (staff.Email ?? string.Empty).ToLower().Contains(normalized) ||
+                    (staff.PhoneNumber ?? string.Empty).ToLower().Contains(normalized)
+                );
+            }
+
+            return staffQuery
+                .OrderBy(staff => staff.FullName)
+                .Select(staff => new StaffInfoDTO
+                {
+                    Id = staff.Id,
+                    UserName = staff.UserName ?? string.Empty,
+                    FullName = staff.FullName ?? string.Empty,
+                    Email = staff.Email ?? string.Empty,
+                    PhoneNumber = staff.PhoneNumber ?? string.Empty
+                })
+                .ToList();
+        }
     }
 }

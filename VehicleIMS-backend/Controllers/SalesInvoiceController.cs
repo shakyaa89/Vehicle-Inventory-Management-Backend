@@ -69,7 +69,6 @@ namespace VehicleIMS_backend.Controllers
             return Ok(new { message = "Invoice email sent." });
         }
 
-        [Authorize(Roles = "Staff,Admin,Customer")]
         [HttpGet("customer/{customerId:long}")]
         public async Task<IActionResult> GetInvoicesByCustomer(long customerId)
         {
@@ -87,7 +86,6 @@ namespace VehicleIMS_backend.Controllers
             return Ok(invoices);
         }
 
-        [Authorize(Roles = "Staff,Admin,Customer")]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetInvoiceById(int id)
         {

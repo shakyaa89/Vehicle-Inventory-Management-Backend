@@ -86,6 +86,8 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 throw new BadRequestException("Customer credit balance limit of 3000 has been exceeded.");
             }
 
+            var creditDueDate = invoiceData.IsCredit ? now.Date.AddMonths(1) : (DateTime?)null;
+
             var invoice = new SalesInvoice
             {
                 CustomerId = invoiceData.CustomerId,
@@ -94,7 +96,7 @@ namespace VehicleIMS_backend.Infrastructure.Services
                 LoyaltyApplied = invoiceData.LoyaltyApplied,
                 IsCredit = invoiceData.IsCredit,
                 DueAmount = invoiceData.IsCredit ? dueAmount : 0,
-                CreditDueDate = invoiceData.IsCredit ? invoiceData.CreditDueDate : null,
+                CreditDueDate = creditDueDate,
                 CreatedAt = now
             };
 

@@ -19,5 +19,7 @@ namespace VehicleIMS_backend.Application.Interfaces.IServices
         Task<object> UpdateProfileAsync(long userId, UpdateProfileDTO updateProfileDTO);
 
         Task ChangePasswordAsync(long userId, ChangePasswordDTO changePasswordDTO);
+
+        Task<IEnumerable<StaffInfoDTO>> GetStaffAsync(string? query);
     }
 }

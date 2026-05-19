@@ -126,5 +126,19 @@ namespace VehicleIMS_backend.Controllers
             var customers = await _authService.GetCustomersAsync(query);
             return Ok(customers);
         }
+
+        [Authorize]
+        [HttpGet("staff")]
+        public async Task<IActionResult> GetStaff([FromQuery] string? query)
+        {
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            if (role != "Admin")
+                return Forbid();
+
+            _logger.LogInformation("Fetching staff with query {Query}", query ?? string.Empty);
+            var staff = await _authService.GetStaffAsync(query);
+            return Ok(staff);
+        }
     }
 }
