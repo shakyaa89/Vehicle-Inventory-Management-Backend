@@ -5,6 +5,7 @@ using System.Text;
 
 namespace VehicleIMS_backend.Domain.Models
 {
+    // Application role definition
     public class Roles : IdentityRole<long>
     {
     }

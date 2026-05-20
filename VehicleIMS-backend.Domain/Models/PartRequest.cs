@@ -3,11 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VehicleIMS_backend.Domain.Models
 {
+    // Customer request for a specific part
     public class PartRequest
     {
         [Key]
         public int Id { get; set; }
 
+        // Related customer
         [Required]
         public long CustomerId { get; set; }
 
@@ -23,6 +25,7 @@ namespace VehicleIMS_backend.Domain.Models
         [Required]
         public decimal Price { get; set; }
 
+        // Request workflow status
         [Required]
         public string Status { get; set; } = string.Empty;
         [Required]

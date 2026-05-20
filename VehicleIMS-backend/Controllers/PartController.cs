@@ -7,11 +7,13 @@ namespace VehicleIMS_backend.Controllers
 {
     [Route("api/parts")]
     [ApiController]
+    // Controller for part endpoints
     public class PartController(IPartService partService, ILogger<PartController> logger) : ControllerBase
     {
         private readonly IPartService _partService = partService;
         private readonly ILogger<PartController> _logger = logger;
 
+        // Get all parts
         [HttpGet]
         public async Task<IActionResult> GetAllParts()
         {
@@ -20,6 +22,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(parts);
         }
 
+        // Get a single part by id
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetPartById(int id)
         {
@@ -32,6 +35,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(part);
         }
 
+        // Create a new part
         [HttpPost]
         public async Task<IActionResult> AddPart(PartDTO partData)
         {
@@ -41,6 +45,7 @@ namespace VehicleIMS_backend.Controllers
             return CreatedAtAction(nameof(GetPartById), new { id = part.Id }, part);
         }
 
+        // Update an existing part
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdatePart(int id, PartDTO partData)
         {
@@ -53,6 +58,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(part);
         }
 
+        // Delete a part
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeletePart(int id)
         {

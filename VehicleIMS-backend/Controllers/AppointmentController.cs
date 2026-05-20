@@ -8,11 +8,13 @@ namespace VehicleIMS_backend.Controllers
 {
     [Route("api/appointments")]
     [ApiController]
+    // Controller for appointment endpoints
     public class AppointmentController(IAppointmentService appointmentService, ILogger<AppointmentController> logger) : ControllerBase
     {
         private readonly IAppointmentService _appointmentService = appointmentService;
         private readonly ILogger<AppointmentController> _logger = logger;
 
+        // Get all appointments, optionally filtered by search
         [HttpGet]
         public async Task<IActionResult> GetAllAppointments([FromQuery] string? search = null)
         {
@@ -21,6 +23,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(appointments);
         }
 
+        // Get appointments for a specific customer
         [HttpGet("customer/{customerId:long}")]
         public async Task<IActionResult> GetAppointmentsByCustomerId(long customerId)
         {
@@ -29,6 +32,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(appointments);
         }
 
+        // Get a single appointment by id
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetAppointmentById(int id)
         {
@@ -41,6 +45,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(appointment);
         }
 
+        // Create a new appointment
         [HttpPost]
         public async Task<IActionResult> AddAppointment(AppointmentDTO appointmentData)
         {
@@ -50,6 +55,7 @@ namespace VehicleIMS_backend.Controllers
             return CreatedAtAction(nameof(GetAppointmentById), new { id = appointment.Id }, appointment);
         }
 
+        // Update an existing appointment
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateAppointment(int id, AppointmentDTO appointmentData)
         {
@@ -62,6 +68,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(appointment);
         }
 
+        // Mark an appointment as completed
         [HttpPut("{id:int}/complete")]
         public async Task<IActionResult> CompleteAppointment(int id)
         {
@@ -74,6 +81,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(appointment);
         }
 
+        // Cancel an appointment
         [HttpPut("{id:int}/cancel")]
         public async Task<IActionResult> CancelAppointment(int id)
         {
@@ -86,6 +94,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(appointment);
         }
 
+        // Delete an appointment
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAppointment(int id)
         {

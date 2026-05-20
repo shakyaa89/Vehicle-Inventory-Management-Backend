@@ -7,11 +7,13 @@ namespace VehicleIMS_backend.Controllers
 {
     [Route("api/vehicles")]
     [ApiController]
+    // Controller for vehicle endpoints
     public class VehicleController(IVehicleService vehicleService, ILogger<VehicleController> logger) : ControllerBase
     {
         private readonly IVehicleService _vehicleService = vehicleService;
         private readonly ILogger<VehicleController> _logger = logger;
 
+        // Get all vehicles
         [HttpGet]
         public async Task<IActionResult> GetAllVehicles()
         {
@@ -20,6 +22,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(vehicles);
         }
 
+        // Get vehicles for a specific customer
         [HttpGet("customer/{customerId:long}")]
         public async Task<IActionResult> GetVehiclesByCustomerId(long customerId)
         {
@@ -28,6 +31,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(vehicles);
         }
 
+        // Get a single vehicle by id
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetVehicleById(int id)
         {
@@ -40,6 +44,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(vehicle);
         }
 
+        // Create a new vehicle
         [HttpPost]
         public async Task<IActionResult> AddVehicle(VehicleDTO vehicleDTO)
         {
@@ -49,6 +54,7 @@ namespace VehicleIMS_backend.Controllers
             return CreatedAtAction(nameof(GetVehicleById), new { id = vehicle.Id }, vehicle);
         }
 
+        // Update an existing vehicle
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateVehicle(int id, VehicleDTO vehicleDTO)
         {
@@ -61,6 +67,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(vehicle);
         }
 
+        // Delete a vehicle
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteVehicle(int id)
         {

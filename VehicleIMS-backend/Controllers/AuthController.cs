@@ -11,12 +11,14 @@ namespace VehicleIMS_backend.Controllers
 {
     [Route("api/auth")]
     [ApiController]
+    // Controller for authentication and profile endpoints
     public class AuthController(IAuthService authService, UserManager<User> userManager, ILogger<AuthController> logger): ControllerBase
     {
         private readonly IAuthService _authService = authService;
         private readonly UserManager<User> _userManager = userManager;
         private readonly ILogger<AuthController> _logger = logger;
 
+        // Register a customer account
         [HttpPost("register/customer")]
         public async Task<IActionResult> RegisterCustomer(RegisterDTO registerDTO)
         {
@@ -26,6 +28,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(customer);
         }
 
+        // Authenticate a user and return auth data
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDTO loginDTO)
         {
@@ -40,6 +43,7 @@ namespace VehicleIMS_backend.Controllers
             });
         }
 
+        // Register a staff account
         [HttpPost("register/staff")]
         public async Task<IActionResult> RegisterStaff(RegisterDTO registerDTO)
         {
@@ -49,10 +53,12 @@ namespace VehicleIMS_backend.Controllers
             return Ok(staff);
         }
 
+        // Get the current authenticated user
         [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> CheckAuth()
         {
+            // Read claims from the token
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var role = User.FindFirstValue(ClaimTypes.Role);
 
@@ -61,6 +67,7 @@ namespace VehicleIMS_backend.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { message = "Invalid token payload" });
 
+            // Load the user profile
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
@@ -77,7 +84,7 @@ namespace VehicleIMS_backend.Controllers
             });
         }
 
-        [Authorize]
+        // Update the authenticated user's profile
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile(UpdateProfileDTO updateProfileDTO)
         {
@@ -98,7 +105,7 @@ namespace VehicleIMS_backend.Controllers
             });
         }
 
-        [Authorize]
+        // Change the authenticated user's password
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordDTO changePasswordDTO)
         {
@@ -118,7 +125,7 @@ namespace VehicleIMS_backend.Controllers
             });
         }
 
-        [Authorize]
+        // Get customers with optional search query
         [HttpGet("customers")]
         public async Task<IActionResult> GetCustomers([FromQuery] string? query)
         {
@@ -127,12 +134,13 @@ namespace VehicleIMS_backend.Controllers
             return Ok(customers);
         }
 
-        [Authorize]
+        // Get staff users (admin only)
         [HttpGet("staff")]
         public async Task<IActionResult> GetStaff([FromQuery] string? query)
         {
             var role = User.FindFirstValue(ClaimTypes.Role);
 
+            // Restrict staff list to admins
             if (role != "Admin")
                 return Forbid();
 

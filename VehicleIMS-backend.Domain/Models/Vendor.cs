@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace VehicleIMS_backend.Domain.Models
 {
+    // Vendor entity
     public class Vendor
     {
         [Key]

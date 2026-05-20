@@ -7,11 +7,13 @@ namespace VehicleIMS_backend.Controllers
 {
     [Route("api/part-requests")]
     [ApiController]
+    // Controller for part request endpoints
     public class PartRequestController(IPartRequestService partRequestService, ILogger<PartRequestController> logger) : ControllerBase
     {
         private readonly IPartRequestService _partRequestService = partRequestService;
         private readonly ILogger<PartRequestController> _logger = logger;
 
+        // Get all part requests
         [HttpGet]
         public async Task<IActionResult> GetAllRequests()
         {
@@ -20,6 +22,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(requests);
         }
 
+        // Get part requests for a specific customer
         [HttpGet("customer/{customerId:long}")]
         public async Task<IActionResult> GetRequestsByCustomer(long customerId)
         {
@@ -28,6 +31,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(requests);
         }
 
+        // Get a single part request by id
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetRequestById(int id)
         {
@@ -40,6 +44,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(request);
         }
 
+        // Create a new part request
         [HttpPost]
         public async Task<IActionResult> AddRequest(PartRequestDTO requestData)
         {
@@ -48,6 +53,7 @@ namespace VehicleIMS_backend.Controllers
             return CreatedAtAction(nameof(GetRequestById), new { id = request.Id }, request);
         }
 
+        // Mark a part request as completed
         [HttpPut("{id:int}/complete")]
         public async Task<IActionResult> CompleteRequest(int id)
         {
@@ -60,6 +66,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(request);
         }
 
+        // Reject a part request
         [HttpPut("{id:int}/reject")]
         public async Task<IActionResult> RejectRequest(int id)
         {
@@ -72,6 +79,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(request);
         }
 
+        // Delete a part request
         [HttpDelete("{id:int}/delete")]
         public async Task<IActionResult> DeleteRequest(int id)
         {

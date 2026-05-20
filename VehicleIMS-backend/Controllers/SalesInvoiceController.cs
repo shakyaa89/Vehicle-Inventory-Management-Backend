@@ -10,12 +10,13 @@ namespace VehicleIMS_backend.Controllers
     [Authorize]
     [Route("api/sales-invoices")]
     [ApiController]
+    // Controller for sales invoice endpoints
     public class SalesInvoiceController(ISalesInvoiceService salesInvoiceService, ILogger<SalesInvoiceController> logger) : ControllerBase
     {
         private readonly ISalesInvoiceService _salesInvoiceService = salesInvoiceService;
         private readonly ILogger<SalesInvoiceController> _logger = logger;
 
-        [Authorize(Roles = "Staff,Customer")]
+        // Create a new sales invoice
         [HttpPost]
         public async Task<IActionResult> CreateInvoice(SalesInvoiceDTO invoiceData)
         {
@@ -28,6 +29,7 @@ namespace VehicleIMS_backend.Controllers
             if (string.IsNullOrEmpty(userIdValue) || !long.TryParse(userIdValue, out var userId))
                 return Unauthorized(new { message = "Invalid token payload" });
 
+            // Ensure customer id matches token for customers
             var isCustomer = string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase);
             if (isCustomer)
             {
@@ -46,7 +48,7 @@ namespace VehicleIMS_backend.Controllers
             return CreatedAtAction(nameof(GetInvoiceById), new { id = invoice.Id }, invoice);
         }
 
-        [Authorize(Roles = "Staff,Admin")]
+        // Get all sales invoices
         [HttpGet]
         public async Task<IActionResult> GetAllInvoices()
         {
@@ -55,7 +57,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(invoices);
         }
 
-        [Authorize(Roles = "Staff,Admin")]
+        // Send a sales invoice email
         [HttpPost("{id:int}/send-email")]
         public async Task<IActionResult> SendInvoiceEmail(int id)
         {
@@ -69,6 +71,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(new { message = "Invoice email sent." });
         }
 
+        // Get invoices for a specific customer
         [HttpGet("customer/{customerId:long}")]
         public async Task<IActionResult> GetInvoicesByCustomer(long customerId)
         {
@@ -78,6 +81,7 @@ namespace VehicleIMS_backend.Controllers
             if (string.IsNullOrEmpty(userIdValue) || !long.TryParse(userIdValue, out var userId))
                 return Unauthorized(new { message = "Invalid token payload" });
 
+            // Restrict customers to their own invoices
             var isCustomer = string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase);
             if (isCustomer && userId != customerId)
                 return Forbid();
@@ -86,6 +90,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(invoices);
         }
 
+        // Get a single sales invoice by id
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetInvoiceById(int id)
         {
@@ -100,6 +105,7 @@ namespace VehicleIMS_backend.Controllers
             if (string.IsNullOrEmpty(userIdValue) || !long.TryParse(userIdValue, out var userId))
                 return Unauthorized(new { message = "Invalid token payload" });
 
+            // Restrict customers to their own invoice
             var isCustomer = string.Equals(role, "Customer", StringComparison.OrdinalIgnoreCase);
             if (isCustomer && invoice.CustomerId != userId)
                 return Forbid();

@@ -4,17 +4,20 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VehicleIMS_backend.Domain.Models
 {
+    // Line item for a purchase invoice
     public class PurchaseInvoiceItem
     {
         [Key]
         public int Id { get; set; }
 
+        // Parent purchase invoice
         [Required]
         public int PurchaseInvoiceId { get; set; }
 
         [ForeignKey(nameof(PurchaseInvoiceId))]
         public PurchaseInvoice? PurchaseInvoice { get; set; }
 
+        // Related part
         [Required]
         public int PartId { get; set; }
 

@@ -7,11 +7,13 @@ namespace VehicleIMS_backend.Controllers
 {
     [Route("api/vendors")]
     [ApiController]
+    // Controller for vendor endpoints
     public class VendorController(IVendorService vendorService, ILogger<VendorController> logger) : ControllerBase
     {
         private readonly IVendorService _vendorService = vendorService;
         private readonly ILogger<VendorController> _logger = logger;
 
+        // Get all vendors
         [HttpGet]
         public async Task<IActionResult> GetAllVendors()
         {
@@ -20,6 +22,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(vendors);
         }
 
+        // Get a single vendor by id
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetVendorById(int id)
         {
@@ -32,6 +35,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(vendor);
         }
 
+        // Create a new vendor
         [HttpPost]
         public async Task<IActionResult> AddVendor(VendorDTO vendorData)
         {
@@ -41,6 +45,7 @@ namespace VehicleIMS_backend.Controllers
             return CreatedAtAction(nameof(GetVendorById), new { id = vendor.Id }, vendor);
         }
 
+        // Update an existing vendor
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateVendor(int id, VendorDTO vendorData)
         {
@@ -53,6 +58,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(vendor);
         }
 
+        // Delete a vendor
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteVendor(int id)
         {

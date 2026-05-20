@@ -3,11 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VehicleIMS_backend.Domain.Models
 {
+    // Vehicle entity tied to a customer
     public class Vehicle
     {
         [Key]
         public int Id { get; set; }
 
+        // Related customer
         [Required]
         public long CustomerId { get; set; }
 

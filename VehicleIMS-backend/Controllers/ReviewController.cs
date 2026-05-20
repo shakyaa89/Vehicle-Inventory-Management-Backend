@@ -11,11 +11,13 @@ namespace VehicleIMS_backend.Controllers
 {
     [Route("api/reviews")]
     [ApiController]
+    // Controller for review endpoints
     public class ReviewController(IReviewService reviewService, ILogger<ReviewController> logger): ControllerBase
     {
         private readonly IReviewService _reviewService = reviewService;
         private readonly ILogger<ReviewController> _logger = logger;
 
+        // Create a new review
         [HttpPost("create")]
         public async Task<IActionResult> CreateReviewAsync(ReviewDTO reviewData)
         {
@@ -23,6 +25,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(await _reviewService.CreateReviewAsync(reviewData));
         }
 
+        // Get reviews for a customer
         [HttpGet("customer/{customerId:int}")]
         public async Task<IActionResult> GetReviewsByCustomerId(int customerId)
         {
@@ -30,6 +33,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(await _reviewService.GetByCustomerId(customerId));
         }
 
+        // Get all reviews
         [HttpGet]
         public async Task<IActionResult> GetAllReviews()
         {
@@ -37,6 +41,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(await _reviewService.GetAllReviewsAsync());
         }
 
+        // Get a single review by id
         [HttpGet("{reviewId:int}")]
         public async Task<IActionResult> GetReviewById(int reviewId)
         {
@@ -44,6 +49,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(await _reviewService.GetReviewById(reviewId));
         }
 
+        // Update an existing review
         [HttpPut("{reviewId:int}")]
         public async Task<IActionResult> UpdateReview(int reviewId, ReviewUpdateDTO reviewData)
         {
@@ -52,6 +58,7 @@ namespace VehicleIMS_backend.Controllers
             return Ok(review);
         }
 
+        // Delete a review
         [HttpDelete("{reviewId:int}")]
         public async Task<IActionResult> DeleteReview(int reviewId)
         {

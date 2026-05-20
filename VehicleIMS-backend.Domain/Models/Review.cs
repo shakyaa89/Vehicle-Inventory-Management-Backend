@@ -3,17 +3,20 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VehicleIMS_backend.Domain.Models
 {
+    // Customer review for an appointment
     public class Review
     {
         [Key]
         public int Id { get; set; }
 
+        // Related customer
         [Required]
         public long CustomerId { get; set; }
 
         [ForeignKey(nameof(CustomerId))]
         public User? Customer { get; set; }
 
+        // Related appointment
         [Required]
         public int AppointmentId { get; set; }
 
